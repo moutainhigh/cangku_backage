@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.ssop.service.cms.mapper.FeedBackMapper">
+
+    <select id="findAllFeedBackType" resultType="cn.enn.wise.ssop.service.cms.model.FeedBackExpand">
+        SELECT
+        business_type,business_name
+        FROM
+        xz_feed_back_expand where company_id =#{companyId}
+    </select>
+
+    <select id="findAllFeedBackList" resultType="cn.enn.wise.ssop.api.cms.dto.request.oldcms.FeedBackVo">
+        SELECT
+        xfb.content,
+        xfb.phone,
+        xfb. STATUS,
+        xfb.messages,
+        xfb.picture,
+        xfb.create_time,
+        xfb.id,
+        xfb.business_type,
+        IFNULL(
+        (
+        SELECT
+        xfbe.business_name
+        FROM
+        xz_feed_back_expand xfbe
+        WHERE
+        1 = 1
+        AND xfbe.business_type = xfb.business_type
+        AND xfbe.company_id = #{feedBackBean.scenicId}
+        ),
+        NULL
+        ) businessName
+        FROM
+        xz_feed_back xfb
+        WHERE
+        1 = 1
+        <if test="feedBackBean.phone != null and feedBackBean.phone !='' ">
+            AND
+            xfb.phone=#{feedBackBean.phone}
+        </if>
+        <if test="feedBackBean.status != null">
+            AND
+            xfb.STATUS=#{feedBackBean.status}
+        </if>
+        <if test="feedBackBean.businessType != null">
+            AND
+            xfb.business_type=#{feedBackBean.businessType}
+        </if>
+        <if test="feedBackBean.scenicId != null">
+            AND
+            xfb.company_id=#{feedBackBean.scenicId}
+        </if>
+        order by create_time desc
+    </select>
+
+    <select id="findFeedBackDetails" resultType="cn.enn.wise.ssop.api.cms.dto.request.oldcms.FeedBackVo">
+        SELECT
+            xfb.id,
+            xfb.content,
+            xfb.phone,
+            xfb. STATUS,
+            xfb.business_type,
+            xfb.messages,
+            xfb.picture,
+            xfb.create_time,
+        IFNULL(
+            (
+                SELECT
+                    xfbe.business_name
+                FROM
+                    xz_feed_back_expand xfbe
+                WHERE
+                    1 = 1
+                AND xfbe.business_type = xfb.business_type
+                AND xfbe.company_id = #{companyId}
+            ),
+            NULL
+        ) businessName
+        FROM
+            xz_feed_back xfb
+        WHERE
+            xfb.id = #{id}
+        AND xfb.company_id = #{companyId}
+    </select>
+
+</mapper>

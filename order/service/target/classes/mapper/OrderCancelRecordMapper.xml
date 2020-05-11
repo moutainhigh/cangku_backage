@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.ssop.service.order.mapper.OrderCancelRecordMapper">
+
+
+    <resultMap id="OrderCancelRecordMap" type="cn.enn.wise.ssop.service.order.model.OrderCancelRecord">
+        <id column="id" property="id"/>
+        <result column="order_id" property="orderId"/>
+        <result column="order_no" property="orderNo"/>
+        <result column="parent_order_id" property="parentOrderId"/>
+        <result column="cancel_type" property="cancelType"/>
+        <result column="cancel_reason" property="cancelReason"/>
+        <result column="cancel_reason_type" property="cancelReasonType"/>
+        <result column="cancel_time" property="cancelTime"/>
+    </resultMap>
+
+    <insert id="batchInsert" parameterType="java.util.List">
+
+        INSERT INTO `order_cancel_record` ( `order_id`,`order_no`,  `cancel_type`, `cancel_reason`, `cancel_reason_type`,`cancel_time`,`parent_order_id`,`judge_record`) VALUES
+        <foreach collection="list" separator="," index="index" item="cancel" >
+            (
+            #{cancel.orderId},
+            #{cancel.orderNo},
+            #{cancel.cancelType},
+            #{cancel.cancelReason},
+            #{cancel.cancelReasonType},
+            #{cancel.cancelTime},
+            #{cancel.parentOrderId},
+            #{cancel.judgeRecord}
+            )
+        </foreach>
+    </insert>
+    <select id="orderCancelList" parameterType="java.util.List" resultType="cn.enn.wise.ssop.api.order.dto.response.OrderCancelListDTO">
+        SELECT
+        order_goods.order_id orderId,
+        order_goods.order_no,
+        goods_name,
+        goods_price,
+        order_goods.order_status,
+        order_goods.refund_price,
+        order_goods.decrease_price,
+        cancel_reason AS refundReasonDesc,
+        orders.create_time,
+        cancel_time,
+        phone,
+        customer_name,
+        amount,
+        orders.should_pay_price shouldPay,
+        order_relate_people.extra_information
+        FROM
+        order_cancel_record
+        LEFT JOIN order_relate_people ON order_cancel_record.order_id = order_relate_people.order_id
+        LEFT JOIN order_goods ON order_goods.order_id = order_relate_people.order_id
+        LEFT JOIN orders ON order_goods.parent_order_id = orders.order_id
+        WHERE
+        order_cancel_record.order_id IN
+        <foreach collection="list" separator="," index="index" item="orderId"  open="(" close=")">
+            #{orderId}
+        </foreach>
+        and order_goods.system_status = 10
+    </select>
+</mapper>

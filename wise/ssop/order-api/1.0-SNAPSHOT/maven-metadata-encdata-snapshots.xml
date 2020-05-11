@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata modelVersion="1.1.0">
+  <groupId>cn.enn.wise.ssop</groupId>
+  <artifactId>order-api</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <versioning>
+    <snapshot>
+      <timestamp>20200430.122533</timestamp>
+      <buildNumber>103</buildNumber>
+    </snapshot>
+    <lastUpdated>20200430122533</lastUpdated>
+    <snapshotVersions>
+      <snapshotVersion>
+        <extension>jar</extension>
+        <value>1.0-20200430.122533-103</value>
+        <updated>20200430122533</updated>
+      </snapshotVersion>
+      <snapshotVersion>
+        <extension>pom</extension>
+        <value>1.0-20200430.122533-103</value>
+        <updated>20200430122533</updated>
+      </snapshotVersion>
+    </snapshotVersions>
+  </versioning>
+</metadata>

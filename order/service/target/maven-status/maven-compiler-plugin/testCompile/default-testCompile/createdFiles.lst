@@ -1,0 +1,8 @@
+cn\enn\wise\ssop\service\order\WithdrawControllerTest.class
+cn\enn\wise\ssop\service\order\OrderGoodsServiceTest.class
+cn\enn\wise\ssop\service\order\controller\applet\OrderHotelControllerTest.class
+cn\enn\wise\ssop\service\order\OrderRelatePeopleServiceTest.class
+cn\enn\wise\ssop\service\order\OrderSaleServiceTest.class
+cn\enn\wise\ssop\service\order\controller\applet\OrderControllerTest.class
+cn\enn\wise\ssop\service\order\OrderChangeServiceTest.class
+cn\enn\wise\ssop\service\order\OrderServiceTest.class

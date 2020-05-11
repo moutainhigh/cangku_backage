@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.platform.mall.mapper.ScanCodeDataMapper">
+
+
+
+
+    <select id="selectScanCodeDataList" resultType="cn.enn.wise.platform.mall.bean.bo.ScanCodeDataValue" parameterType="cn.enn.wise.platform.mall.bean.vo.ScanCodeDataReqVo" >
+        select col.id ,col.column_name,col.company_id,
+               val.scan_date,
+               ifnull(val.scan_amount,0) as scan_amount,
+               val.scan_type
+
+        from scan_code_data_col col
+                 left  join   scan_code_data_value val on col.id = val.col_id
+        where
+            col.company_id=#{companyId}
+          and  (val.scan_type = #{scanType} or val.scan_type is null)
+
+          and scan_date between #{scanDateStart} and #{scanDateEnd}
+
+        order by scan_date desc
+
+    </select>
+
+    <insert id="addScanCodeDataValue" parameterType="cn.enn.wise.platform.mall.bean.bo.ScanCodeDataValue">
+insert into scan_code_data_value( scan_date, scan_amount, scan_type, col_id)
+values
+        <foreach collection="list" separator="," item="sdb" index="index">
+            (
+            #{sdb.scanDate},
+            #{sdb.scanAmount},
+            #{sdb.scanType},
+            #{sdb.colId}
+            )
+        </foreach>
+
+    </insert>
+
+    <select id="getAllColumn" resultType="cn.enn.wise.platform.mall.bean.bo.ScanCodeDataCol" >
+        select
+               id,
+               column_name,
+               company_id
+        from scan_code_data_col
+        where 1=1
+          and company_id =#{companyId}
+
+        <if test="contactPointName != null and contactPointName != '' ">
+          and column_name = #{contactPointName}
+        </if>
+    </select>
+
+    <select id="selectScanCodeDataListBySort" resultType="cn.enn.wise.platform.mall.bean.bo.ScanCodeDataCol" parameterType="cn.enn.wise.platform.mall.bean.vo.ScanCodeDataReqVo">
+        select
+            col.column_name,
+            sum(val.scan_amount) as total
+
+        from scan_code_data_col col
+                 left  join   scan_code_data_value val on col.id = val.col_id
+        where
+            col.company_id=#{companyId}
+          and  (val.scan_type = #{scanType} or val.scan_type is null)
+
+          and scan_date between #{scanDateStart} and #{scanDateEnd}
+        group by col.column_name
+        having sum(val.scan_amount)
+        order by total desc
+    </select>
+
+
+
+    <select id="getScanCodeDataColByColumnName" resultType="cn.enn.wise.platform.mall.bean.bo.ScanCodeDataCol">
+        select id,column_name,company_id from scan_code_data_col where company_id =#{companyId} and column_name = #{columnName}
+    </select>
+    <insert id="addScanCodeDataColumn" parameterType="cn.enn.wise.platform.mall.bean.bo.ScanCodeDataCol" useGeneratedKeys="true" keyProperty="id">
+        insert into scan_code_data_col(column_name, company_id)
+
+            values (#{columnName},#{companyId})
+    </insert>
+</mapper>

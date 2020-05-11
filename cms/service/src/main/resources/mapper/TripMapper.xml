@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.ssop.service.cms.mapper.TripMapper">
+    <resultMap id="tripListMap" type="cn.enn.wise.ssop.api.cms.dto.response.TripListAppletDTO">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="picture" property="picture"/>
+        <result column="scenic" property="scenic"/>
+        <result column="day_count" property="dayCount"/>
+        <result column="tags" property="tags"/>
+        <result column="scenic_spot_count" property="scenicSpotCount"/>
+        <collection property="scenicSpotInfoList" ofType="cn.enn.wise.ssop.api.cms.dto.response.ScenicSpotInfo">
+            <result column="scenicResName" property="scenicSpotName"/>
+            <result column="lon" property="longitude"/>
+            <result column="lat" property="latitude"/>
+        </collection>
+        <collection property="codes" ofType="java.lang.String">
+            <result column="code"/>
+        </collection>
+    </resultMap>
+
+    <select id="selectTripList" resultMap="tripListMap">
+        SELECT
+            cr.company_route_id as id,
+            r.code,
+            r.NAME,
+            r.picture,
+            r.scenic,
+            r.day_count,
+            IFNULL(rt.tag, '') tags,
+            COUNT(rc.scenicres_id) scenic_spot_count,
+            sc.id AS scenicResId,
+            sc.NAME AS scenicResName,
+            sc.lon AS lon,
+            sc.lat AS lat
+        FROM
+            route r
+        LEFT JOIN (
+            SELECT
+                t.id,
+                t.tag,
+                GROUP_CONCAT(rt.route) route
+            FROM
+                route_tag rt,
+                tag t
+            WHERE
+                rt.tag = t.id
+            GROUP BY
+                rt.route
+        ) rt ON rt.route = r. CODE
+        INNER JOIN company_route cr ON cr.route_id = r.id
+        INNER JOIN route_sceniceres rc ON rc.route_code = r. CODE
+        INNER JOIN scenicres sc ON sc.id = rc.scenicres_id
+        WHERE
+            cr.company_id IN
+            <foreach collection="scenicObjIds" item="id" index="index" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        GROUP BY
+            rc.id
+    </select>
+    <select id="selectRouteCodeByCompanyRouteId" resultType="java.lang.String">
+        select code from route r,company_route cr
+        where r.id=cr.route_id
+        and cr.company_route_id = #{compnayRouteId}
+        group by cr.company_route_id
+    </select>
+
+
+</mapper>

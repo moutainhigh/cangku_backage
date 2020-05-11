@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.ssop.service.order.mapper.OrderMapper">
+
+<resultMap id="orderResultMap" type="cn.enn.wise.ssop.service.order.model.Orders">
+    <id column="id" property="id"/>
+    <result column="order_id" property="orderId"/>
+    <result column="three_order_no" property="threeOrderNo"/>
+    <result column="order_type" property="orderType"/>
+    <result column="order_source" property="orderSource"/>
+    <result column="should_pay_price" property="shouldPayPrice"/>
+    <result column="actual_pay_price" property="actualPayPrice"/>
+    <result column="create_time" property="createTime"/>
+    <result column="update_time" property="updateTime"/>
+    <result column="expire_time" property="expireTime"/>
+    <result column="pay_time" property="payTime"/>
+    <result column="pay_type" property="payType"/>
+    <result column="updator_id" property="updatorId"/>
+    <result column="pay_status" property="payStatus"/>
+    <result column="transaction_status" property="transactionStatus"/>
+    <result column="order_status" property="orderStatus"/>
+    <result column="pay_order_no" property="payOrderNo"/>
+    <result column="extra_information" property="extraInformation"/>
+</resultMap>
+
+
+    <update id="updateOrder" parameterType="cn.enn.wise.ssop.service.order.model.Orders">
+        update orders
+        set
+        update_time=now(),
+        <trim suffixOverrides=",">
+            <if test="threeOrderNo != null and threeOrderNo != ''">
+                three_order_no=#{threeOrderNo},
+            </if>
+            <if test="actualPayPrice != null">
+                actual_pay_price=#{actualPayPrice},
+            </if>
+            <if test="payTime != null ">
+                pay_time=#{payTime},
+            </if>
+            <if test="payStatus != null">
+                pay_status=#{payStatus},
+            </if>
+            <if test="transactionStatus != null">
+                transaction_status=#{transactionStatus},
+            </if>
+            <if test="orderStatus != null">
+                order_status=#{orderStatus}
+            </if>
+        </trim>
+
+        where id = #{id}
+    </update>
+
+    <update id="updateOrderStatus" parameterType="cn.enn.wise.ssop.service.order.model.Orders">
+        update orders
+        set
+        update_time=now(),
+        <trim suffixOverrides=",">
+            <if test="payStatus != null">
+                pay_status=#{payStatus},
+            </if>
+            <if test="transactionStatus != null">
+                transaction_status=#{transactionStatus},
+            </if>
+            <if test="orderStatus != null">
+                order_status=#{orderStatus}
+            </if>
+            <if test="refundStatus != null">
+                refund_status=#{refundStatus},
+            </if>
+            <if test="systemStatus != null">
+                system_status=#{systemStatus},
+            </if>
+        </trim>
+
+        where order_id = #{orderId}
+    </update>
+
+    <select id="getTradeDTO" resultType="cn.enn.wise.ssop.api.order.dto.response.TradeDTO">
+        SELECT
+            o.create_time tradeTime,
+            o.should_pay_price amount,
+            og.business_name merchant,
+            o.channel_type channelType,
+            o.channel_name channelName,
+            o.order_id orderId,
+            o.order_type orderType
+        FROM
+            order_relate_people orp
+        INNER JOIN orders o ON o.order_id = orp.order_id
+        INNER JOIN order_goods og ON og.order_id = o.order_id
+        WHERE
+            orp.member_id=#{userId}
+        ORDER BY o.create_time DESC
+        limit #{pageSize},#{offset}
+    </select>
+
+    <select id="getTotalCountInfo" resultType="java.util.Map">
+        SELECT
+            COUNT(o.order_id) tradeSize,
+            SUM(o.should_pay_price) allAmount
+        FROM
+            order_relate_people orp
+        INNER JOIN orders o ON o.order_id = orp.order_id
+        INNER JOIN order_goods og ON og.order_id = o.order_id
+        WHERE
+            orp.member_id=#{userId}
+    </select>
+
+</mapper>

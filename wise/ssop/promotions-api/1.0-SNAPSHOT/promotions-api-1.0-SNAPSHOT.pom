@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>cn.enn.wise.ssop</groupId>
+    <artifactId>promotions-api</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+        <ssop-parent.version>1.0-SNAPSHOT</ssop-parent.version>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>cn.enn.wise.ssop</groupId>
+            <artifactId>ssop-parent</artifactId>
+            <version>${ssop-parent.version}</version>
+        </dependency>
+    </dependencies>
+    <distributionManagement>
+        <repository>
+            <id>encdata-releases</id>
+            <name>Nexus Release Repository</name>
+            <url>http://10.38.128.83:8188/nexus/content/repositories/releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>encdata-snapshots</id>
+            <name>Nexus Release Repository</name>
+            <url>http://10.38.128.83:8188/nexus/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <!--指定编译时的jdk版本-->
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

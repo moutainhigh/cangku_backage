@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.enn.wise.platform.mall.mapper.OfflineOrderMapper">
+
+
+    <select id="selectOfflineOrderById" resultType="cn.enn.wise.platform.mall.bean.vo.OrderResVo">
+
+        select id,
+               order_code,
+               scenic_id,
+               type,
+               goods_id,
+               goods_name,
+               goods_price,
+               state,
+               amount,
+               pay_type,
+               enter_time,
+               name,
+               sigle_price,
+               is_distribute_order,
+               order_source,
+               pay_status,
+               actual_pay,
+               should_pay,
+               distributor_id,
+               snapshot,
+               profit_status,
+               order_type,
+               offline_user,
+               offline_status,
+               phone,
+               create_time,
+               update_time
+
+        from orders
+        where id = #{id}
+          and order_type = 2
+    </select>
+
+    <update id="updateOfflineOrder" parameterType="cn.enn.wise.platform.mall.bean.bo.Orders">
+        update
+            orders
+        set scenic_id           = #{scenicId},
+            type                = #{type},
+            goods_id            = #{goodsId},
+            goods_name          = #{goodsName},
+            goods_price         = #{goodsPrice},
+            state               = #{state},
+            amount              = #{amount},
+            pay_type            = #{payType},
+            enter_time          = #{enterTime},
+            name                = #{name},
+            sigle_price         = #{siglePrice},
+            is_distribute_order = #{isDistributeOrder},
+            order_source        = #{orderSource},
+            pay_status          = #{payStatus},
+            actual_pay= #{actualPay},
+            should_pay          = #{shouldPay},
+            distributor_id      = #{distributorId},
+            snapshot            = #{snapshot},
+            profit_status       = #{profitStatus},
+            order_type          = #{orderType},
+            offline_user        = #{offlineUser},
+            offline_status      = #{offlineStatus},
+            phone=#{phone},
+            update_time=#{updateTime}
+        where id = #{id}
+
+    </update>
+
+    <update id="deleteOfflineOrderById">
+        update orders
+        set offline_status = 3
+        where id = #{id}
+    </update>
+
+
+
+
+</mapper>
+
+

@@ -1,0 +1,11 @@
+# ${project.scenic.name}
+spring:
+  cloud:
+    nacos:
+      config:
+        file-extension: yml
+        server-addr: 10.39.58.6:8848
+        shared-dataids: nacos-config-promotions.properties,base-common.properties,common.properties
+        refreshable-dataids: nacos-config-promotions.properties
+        encode: UTF-8
+        enabled: true

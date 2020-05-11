@@ -1,0 +1,6 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Wed May 06 09:46:00 CST 2020
+order-api-1.0-SNAPSHOT.pom>=
+order-api-1.0-20200505.105246-149.jar>encdata-releases=
+order-api-1.0-SNAPSHOT.jar>=
+order-api-1.0-20200505.105246-149.pom>encdata-releases=

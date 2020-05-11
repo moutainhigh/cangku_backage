@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.ssop.service.promotions.mapper.GroupOrderItemMapper">
+
+    <select id="getCountInsertOrderByGoodsAndUserId" resultType="java.lang.Long">
+        SELECT
+            COUNT(goi.id)
+        FROM
+            group_order_item goi
+        INNER JOIN group_order go ON go.id = goi.group_order_id
+        WHERE
+            go.group_activity_id = #{groupActivityId}
+            AND go.goods_id = #{goodId}
+            AND goi.user_id = #{userId}
+            and  go.status in(1,2,3)
+    </select>
+
+</mapper>

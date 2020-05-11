@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.ssop.service.order.mapper.OrderRelatePeopleMapper">
+
+    <resultMap id="orderRelatePeopleResultMap" type="cn.enn.wise.ssop.service.order.model.OrderRelatePeople">
+        <id column="id" property="id"/>
+        <result column="order_id" property="orderId"/>
+        <result column="member_id" property="memberId"/>
+        <result column="customer_id" property="customerId"/>
+        <result column="customer_name" property="customerName"/>
+        <result column="phone" property="phone"/>
+        <result column="certificate_type" property="certificateType"/>
+        <result column="certificate_no" property="certificateNo"/>
+        <result column="extra_information" property="extraInformation"/>
+        <result column="parent_order_id" property="parentOrderId"/>
+    </resultMap>
+
+    <select id="getRelatePeopleListByOrderId" parameterType="java.lang.Long" resultType="cn.enn.wise.ssop.service.order.model.OrderRelatePeople">
+        SELECT * FROM `order_relate_people` where parent_order_id =
+        (SELECT parent_order_id FROM `order_relate_people` where order_id = #{orderId}
+          limit 1);
+    </select>
+
+    <insert id="batchInsert" parameterType="cn.enn.wise.ssop.service.order.model.OrderRelatePeople">
+
+        INSERT INTO `order_relate_people` ( `order_id`, `member_id`,`customer_id`, `customer_name`,`phone`,`certificate_type`,`certificate_no`,`extra_information`, `parent_order_id`) VALUES
+        <foreach collection="list" separator="," index="index" item="child" >
+            (
+            #{child.orderId},
+            #{child.memberId},
+            #{child.customerId},
+            #{child.customerName},
+            #{child.phone},
+            #{child.certificateType},
+            #{child.certificateNo},
+            #{child.extraInformation},
+            #{child.parentOrderId}
+            )
+        </foreach>
+    </insert>
+
+    <select id="getTicketNumber" resultType="java.lang.Integer">
+        SELECT
+            SUM(ogs.amount)
+        FROM
+            order_relate_people orp
+        LEFT JOIN order_goods ogs ON orp.order_id = ogs.order_id
+        WHERE
+            1=1
+        <if test="phone != null and phone != '' ">
+            AND orp.phone = #{phone}
+        </if>
+        <if test="userCard != null and userCard != '' ">
+            AND orp.certificate_type = 1
+            AND orp.certificate_no = {userCard}
+        </if>
+        AND orp.create_time &gt;= #{start}
+        AND orp.create_time &lt;= #{end}
+    </select>
+
+    <select id="getOrderNumber" resultType="java.lang.Integer">
+        SELECT
+            COUNT(1)
+        FROM
+            order_relate_people orp
+        LEFT JOIN order_goods ogs ON orp.order_id = ogs.order_id
+        WHERE
+            1=1
+        <if test="phone != null and phone != '' ">
+            AND orp.phone = #{phone}
+        </if>
+        <if test="userCard != null and userCard != '' ">
+            AND orp.certificate_type = 1
+            AND orp.certificate_no = {userCard}
+        </if>
+        AND orp.create_time &gt;= #{start}
+        AND orp.create_time &lt;= #{end}
+    </select>
+
+</mapper>

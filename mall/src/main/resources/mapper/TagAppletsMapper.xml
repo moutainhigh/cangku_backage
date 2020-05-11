@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.platform.mall.mapper.TagAppletsMapper">
+
+    <resultMap id="tagResultMap" type="cn.enn.wise.platform.mall.bean.vo.TagAppletsVo">
+        <id column="categoryId" property="id"/>
+        <result column="categoryName" property="categoryName"/>
+        <collection property="tag"  ofType="cn.enn.wise.platform.mall.bean.vo.TagBean">
+            <id column="tagId" property="tagId"/>
+            <result column="tagName" property="tagName"/>
+        </collection>
+
+    </resultMap>
+
+   <select id="getTagList" resultMap="tagResultMap">
+
+select group_concat(ttt.id1 order by ttt.id1 asc) as categoryId,ttt.name1 as categoryName,ttt.name2 as tagName,group_concat(ttt.id2) as tagId  from (
+
+select  t.id id1,t.name name1,tt.id id2,  tt.name name2 from tag t
+left join (select  id,name,pid from tag  where   category_id = 2 or 3 ) tt on t.id =tt.pid
+where t.pid = 0 and t.category_id = 1 group by t.name,tt.id order by t.id desc,tt.name ) ttt
+       group by ttt.name1,ttt.name2 order by categoryId asc
+
+
+   </select>
+
+    <select id="getTagByCategoryId" resultType="cn.enn.wise.platform.mall.bean.bo.TagBo">
+        select id,name,pid from tag where category_id = #{categoryId}
+    </select>
+
+    <select id="getTagByPid" resultType="cn.enn.wise.platform.mall.bean.bo.TagBo">
+        SELECT
+        id,
+        NAME,
+        pid
+        FROM
+        tag
+        WHERE
+        pid IN
+        <foreach collection = "list" index= "index" open= "(" close= ")" separator="," item = "index" >
+        #{index}
+        </foreach >
+    </select>
+
+    <select id="getGoodsOperationTag" resultType="cn.enn.wise.platform.mall.bean.vo.TagBean">
+        select tg.goods_id as goodsId,group_concat(t.name) as tagName
+        from tag_goods tg
+                 left join tag t on tg.tag_id = t.id
+        where t.category_id = 4
+          and tg.goods_id in
+
+        <foreach collection="list" open="(" close=")" separator="," item="index" index="index">
+            #{index}
+        </foreach>
+
+
+        group by tg.goods_id
+    </select>
+    <select id="getProjectOperationTag" resultType="cn.enn.wise.platform.mall.bean.vo.TagBean">
+        select tg.project_id as projectId,group_concat(t.name) as tagName
+        from tag_project tg
+        left join tag t on tg.tag_id = t.id
+        where t.category_id = 4
+
+        and tg.project_id in
+        <foreach collection="list" open="(" close=")" separator="," item="index" index="index">
+            #{index}
+        </foreach>
+
+        group by tg.project_id
+
+    </select>
+</mapper>

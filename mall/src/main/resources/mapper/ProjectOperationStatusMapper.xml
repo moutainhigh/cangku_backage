@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.enn.wise.platform.mall.mapper.ProjectOperationStatusMapper">
+
+
+    <insert id="batchInsertOperationStatus"  parameterType="cn.enn.wise.platform.mall.bean.bo.ProjectOperationStatus">
+
+        INSERT INTO project_operation_factors (
+        project_id,
+        factor_type,
+        operation_status,
+        operation_status_type,
+        status,
+        desc_value,
+        reason,
+        degree_of_influence
+        )
+        VALUES
+        <foreach collection="list" item="pof" index="index" separator=",">
+
+        (
+        #{pof.projectId},
+        #{pof.factorType},
+        #{pof.operationStatus},
+        #{pof.operationStatusType},
+        #{pof.status},
+        #{pof.descValue},
+        #{pof.reason},
+        #{pof.degreeOfInfluence}
+
+        )
+        </foreach>
+    </insert>
+
+    <insert id="addOperationStatus" parameterType="cn.enn.wise.platform.mall.bean.bo.ProjectOperationStatus">
+
+        INSERT INTO project_operation_factors (
+        project_id,
+        factor_type,
+        operation_status,
+        operation_status_type,
+        status,
+        desc_value,
+        reason,
+        degree_of_influence,
+        label,
+        is_show_applet
+        )
+        VALUES
+            (
+            #{projectId},
+            #{factorType},
+            #{operationStatus},
+            #{operationStatusType},
+            #{status},
+            #{descValue},
+            #{reason},
+            #{degreeOfInfluence},
+            #{label},
+            #{isShowApplet}
+            )
+    </insert>
+
+    <update id="updateOperationStatusById"  parameterType="cn.enn.wise.platform.mall.bean.bo.ProjectOperationStatus">
+
+        update project_operation_factors
+        set
+            factor_type = #{factorType},
+            operation_status = #{operationStatus},
+            operation_status_type = #{operationStatusType},
+            status = #{status},
+            desc_value = #{descValue},
+            reason = #{reason},
+            degree_of_influence = #{degreeOfInfluence},
+            label = #{label},
+            is_show_applet=#{isShowApplet}
+
+        where id = #{id}
+
+    </update>
+
+    <select id="getByProjectId" resultType="cn.enn.wise.platform.mall.bean.bo.ProjectOperationStatus">
+
+        select
+        id,
+        project_id,
+        factor_type,
+        operation_status,
+        operation_status_type,
+        status,
+        desc_value,
+        reason,
+        degree_of_influence,
+        label,
+        is_show_applet
+        from project_operation_factors
+        where project_id = #{projectId}
+
+        <if test="type !=null ">
+            and  operation_status is NOT NULL
+            and  status = 1
+        </if>
+    </select>
+</mapper>

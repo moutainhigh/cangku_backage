@@ -1,0 +1,78 @@
+spring:
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 10.39.58.6:8849
+    sentinel:
+      transport:
+        dashboard: 127.0.0.1:8080
+  rabbitmq:
+    host: 10.38.128.83
+    port: 5672
+    username: tx
+    password: tx
+    publisher-confirms: true
+    publisher-returns: true
+    listener:
+      simple:
+        acknowledge-mode: manual
+        concurrency: 1
+        max-concurrency: 1
+        retry:
+          enabled: true
+    virtual-host: tx
+  redis:
+    host: 10.38.128.204
+    port: 6379
+    timeout: 60s
+    database: 3
+    lettuce:
+      pool:
+        max-active: 200
+        max-idle: 20
+        min-idle: 5
+        max-wait: -1
+
+  datasource:
+    name: mysqlDataSource
+    type: com.alibaba.druid.pool.DruidDataSource
+    schema: classpath:/schema.sql
+    initialization-mode: ALWAYS
+    continue-on-error: true
+    sql-script-encoding: utf-8
+    # druid相关
+    druid:
+      name: mysqlDataSource
+      filters: stat
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://10.39.58.6:3306/promotions_dev?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&serverTimezone=CTT
+      username: root
+      password: root@trip
+      #配置初始化大小/最小/最大
+      initial-size: 5
+      min-idle: 5
+      max-active: 500
+      #获取连接等待超时时间
+      max-wait: 60000
+      #间隔多久进行一次检测，检测需要关闭的空闲连接
+      time-between-eviction-runs-millis: 60000
+      #一个连接在池中最小生存的时间
+      min-evictable-idle-time-millis: 300000
+      validation-query: SELECT 'x'
+      test-while-idle: true
+      test-on-borrow: false
+      test-on-return: false
+      #打开PSCache，并指定每个连接上PSCache的大小。oracle设为true，mysql设为false。分库分表较多推荐设置为false
+      pool-prepared-statements: false
+      max-pool-prepared-statement-per-connection-size: 20
+      web-stat-filter.enabled: false
+  jackson:
+    time-zone: GMT+8
+  data:
+    elasticsearch:
+      cluster-name: elasticsearch
+      cluster-nodes: localhost:9300
+logging:
+  level:
+    org.springframework.data.mongodb.core: debug
+  file: mall.log

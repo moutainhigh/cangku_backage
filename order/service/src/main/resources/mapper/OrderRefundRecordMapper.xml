@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.ssop.service.order.mapper.OrderRefundRecordMapper">
+
+
+    <resultMap id="OrderRefundMap" type="cn.enn.wise.ssop.service.order.model.OrderRefundRecord">
+        <id column="id" property="id"/>
+        <result column="order_id" property="orderId"/>
+        <result column="member_id" property="memberId"/>
+        <result column="parent_order_id" property="parentOrderId"/>
+        <result column="goods_name" property="goodsName"/>
+        <result column="refund_type" property="refundType"/>
+        <result column="refund_reason_type" property="refundReasonType"/>
+        <result column="refund_reason_desc" property="refundReasonDesc"/>
+        <result column="refund_price" property="refundPrice"/>
+        <result column="benefit_option" property="benefitOption"/>
+        <result column="refund_status" property="refundStatus"/>
+        <result column="refund_no" property="refundNo"/>
+    </resultMap>
+
+    <insert id="batchInsert" parameterType="cn.enn.wise.ssop.service.order.model.OrderRefundRecord">
+
+        INSERT INTO `order_refund_record` ( `order_id`,  `refund_type`,`member_id`, `parent_order_id`,`goods_name`,`refund_reason_type`, `refund_reason_desc`,`refund_price`,`benefit_option`,`refund_status`,`refund_no`) VALUES
+        <foreach collection="list" separator="," index="index" item="refund" >
+            (
+            #{refund.orderId},
+            #{refund.refundType},
+            #{refund.memberId},
+            #{refund.parentOrderId},
+            #{refund.goodsName},
+            #{refund.refundReasonType},
+            #{refund.refundReasonDesc},
+            #{refund.refundPrice},
+            #{refund.benefitOption},
+            #{refund.refundStatus},
+            #{refund.refundNo}
+            )
+        </foreach>
+    </insert>
+</mapper>

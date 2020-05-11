@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.enn.wise.platform.mall.mapper.WzdOrderAppletsMapper">
+    <insert id="insertOrder" parameterType="cn.enn.wise.platform.mall.bean.bo.Orders" useGeneratedKeys="true"
+            keyProperty="id">
+insert into orders(order_code, user_id, scenic_id, type, goods_Id, goods_name,
+                   goods_price, state, update_time, expired_time, amount, pay_type,
+                   enter_time, ticket_order_code, id_number, name, prepay_id, bat_code,
+                   bat_code_other, checked_num, return_num, uncheked_num, create_time,
+                   sigle_price, is_distribute_order, order_source, pay_status, actual_pay, should_pay, user_wechat_name,
+                   phone,max_number_of_users,distributor_id,profit_status,`snapshot`,project_id,order_type,
+                   offline_status,offline_user,group_order_id,promotion_id,user_of_coupon_id,coupon_price)
+VALUES (
+
+           (select o.orderCode from
+               (select concat(#{projectCode},right(DATE_FORMAT(NOW(),'%Y%m'),4),
+                              LPAD((select ifnull(count(id),0)+1 from orders where left(now(),7) =left(create_time,7)),4,'0'),
+                              #{profiles}) orderCode) o),
+               #{userId},
+               #{scenicId},
+               #{type},
+               #{goodsId},
+               #{goodsName},
+               #{goodsPrice},
+               #{state},
+               #{updateTime},
+               #{expiredTime},
+               #{amount},
+               #{payType},
+               #{enterTime},
+               #{ticketOrderCode},
+               #{idNumber},
+               #{name},
+               #{prepayId},
+               #{batCode},
+               #{batCodeOther},
+               #{checkedNum},
+               #{returnNum},
+               #{unchekedNum},
+               #{createTime},
+               #{siglePrice},
+               #{isDistributeOrder},
+               #{orderSource},
+               #{payStatus},
+               #{actualPay},
+               #{shouldPay},
+               #{userWechatName},
+               #{phone},
+               #{maxNumberOfUsers},
+               #{distributorId},
+               #{profitStatus},
+               #{snapshot},
+               #{projectId},
+               #{orderType},
+               #{offlineStatus},
+               #{offlineUser},
+               #{groupOrderId},
+               #{promotionId},
+               #{userOfCouponId},
+               #{couponPrice}
+        )
+
+
+
+    </insert>
+
+
+    <update id="updateOrder" parameterType="cn.enn.wise.platform.mall.bean.bo.Orders">
+        update orders set
+        prepay_id =#{prepayId}
+        where id =#{id}
+    </update>
+
+    <update id="updateOrderNew" parameterType="cn.enn.wise.platform.mall.bean.bo.Orders">
+    update orders set
+          <trim suffixOverrides=",">
+              <if test="ticketOrderCode!= null and ticketOrderCode != ''">
+              ticket_order_code = #{ticketOrderCode},
+              </if>
+              <if test="ticketOrderCode!= null and ticketOrderCode != ''">
+                  bat_code_other = #{batCodeOther}
+              </if>
+
+          </trim>
+        where id = #{id}
+
+    </update>
+
+
+    <select id="getOrderInfoByOrderCode" parameterType="cn.enn.wise.platform.mall.bean.bo.Orders" resultType="cn.enn.wise.platform.mall.bean.bo.Orders">
+
+        select id,order_code,user_id,scenic_id,type,goods_id,goods_name,is_distribute_order,order_source,`name`,phone,sigle_price,bat_code,group_order_id,user_wechat_name,ticket_order_code,
+               goods_price,state,update_time,expired_time,amount,pay_type,distributor_id,pay_status,create_time,enter_time,project_id,order_type,promotion_id,user_of_coupon_id,coupon_price,actual_pay, should_pay,
+
+               ifnull( json_extract(snapshot,'$.phone'),'') distributorPhone
+        from orders where  order_code=#{orderCode}
+    </select>
+
+    <select id="getOrderInfoByBatCode" parameterType="cn.enn.wise.platform.mall.bean.bo.Orders" resultType="cn.enn.wise.platform.mall.bean.bo.Orders">
+
+        select id,order_code,user_id,scenic_id,type,goods_id,goods_name,is_distribute_order,order_source,`name`,phone,sigle_price,bat_code ,bat_code_other,ticket_order_code,transaction_id,id_number,
+               goods_price,state,update_time,expired_time,amount,pay_type,distributor_id,pay_status,create_time,enter_time,project_id,order_type,snapshot,user_of_coupon_id,coupon_price,actual_pay, should_pay,
+               ifnull( json_extract(snapshot,'$.phone'),'') distributorPhone
+        from orders where  bat_code=#{batCode}
+    </select>
+
+    <select id="getOrderInfoByOrderCode2"  resultType="cn.enn.wise.platform.mall.bean.bo.Orders">
+        select id,order_code,user_id,scenic_id,type,goods_id,goods_name,is_distribute_order,order_source,`name`,phone,sigle_price,bat_code ,bat_code_other,ticket_order_code,transaction_id,
+        goods_price,state,update_time,expired_time,amount,pay_type,distributor_id,pay_status,create_time,enter_time,project_id,order_type,snapshot,user_of_coupon_id,coupon_price,actual_pay, should_pay,
+        ifnull( json_extract(snapshot,'$.phone'),'') distributorPhone
+        from orders where  order_code=#{orderCode}
+    </select>
+
+    <select id="getOrderById"
+        resultType="cn.enn.wise.platform.mall.bean.bo.Orders">
+
+            select id,order_code,user_id,scenic_id,type,goods_id,goods_name,is_distribute_order,order_source,`name`,phone,sigle_price,
+                   goods_price,state,update_time,expired_time,amount,pay_type,distributor_id,pay_status,project_id
+            from orders where id = #{id}
+    </select>
+
+
+    <select id="getOrderByBatCodeOther"
+        resultType="cn.enn.wise.platform.mall.bean.bo.Orders">
+
+            select id,order_code,user_id,scenic_id,type,goods_id,goods_name,is_distribute_order,order_source,`name`,phone,sigle_price,bat_code,
+                   group_order_id,user_wechat_name,ticket_order_code,bat_code_other,
+                   goods_price,state,update_time,expired_time,amount,pay_type,distributor_id,pay_status,create_time,enter_time,project_id,order_type,promotion_id,user_of_coupon_id,coupon_price,
+                   actual_pay, should_pay
+
+            from orders where bat_code_other = #{batCodeOther}
+    </select>
+
+
+
+
+    <select id="getUserOrder" parameterType="cn.enn.wise.platform.mall.bean.bo.Orders" resultType="cn.enn.wise.platform.mall.bean.bo.Orders">
+        select o.id,o.order_code,o.user_id,o.scenic_id,o.goods_id,o.goods_name,o.sigle_price,
+               o.goods_price,o.state,o.update_time,o.expired_time,o.create_time,o.amount,o.pay_type,project_id,o.max_number_of_users,concat_ws("  ",DATE_FORMAT(o.enter_time,"%Y-%m-%d"),g.timespan) as timespan
+        from orders  o
+        left join goods_extend g on g.id = o.goods_Id
+        where  user_id =#{userId}
+
+                        <if test="projectId != null">
+
+                            and project_id = #{projectId}
+
+                        </if>
+                      <if test="state != null">
+
+                          and `state` =#{state}
+
+                      </if>
+                      and  scenic_id = #{scenicId}
+
+        order by create_time desc
+    </select>
+
+
+    <select id="getOrderByIdAndUserId"  parameterType="cn.enn.wise.platform.mall.bean.bo.Orders" resultType="cn.enn.wise.platform.mall.bean.bo.Orders">
+        select o.id,o.order_code,o.user_id,o.scenic_id,o.goods_id,o.goods_name,o.`name`,o.qr_code,o.proof,o.project_id ,
+               o.goods_price,o.state,o.create_time,o.expired_time,o.amount,o.pay_type,o.id_number,o.phone,o.max_number_of_users,concat_ws("  ",DATE_FORMAT(o.enter_time,"%Y-%m-%d"),g.timespan) as timespan
+        from orders o
+                 left join goods_extend g on g.id = o.goods_Id
+        where order_code = #{orderCode} and user_id = #{userId}
+
+    </select>
+
+    <update id="refundOrder" parameterType="cn.enn.wise.platform.mall.bean.bo.Orders">
+
+        update orders set state =#{state},reason=#{reason} where id = #{id}
+    </update>
+
+    <update id="updateOrderByOrderCode" parameterType="cn.enn.wise.platform.mall.bean.bo.Orders">
+        update orders set state =#{state},pay_status = #{payStatus},actual_pay= #{actualPay},pay_time=#{payTime},transaction_id=#{transactionId} where id = #{id}
+    </update>
+
+    <select id="selectExpireOrder" resultType="cn.enn.wise.platform.mall.bean.bo.Orders">
+
+        select  id,order_code,expired_time,create_time,user_id,user_of_coupon_id,ticket_order_code,transaction_id,order_type from orders where expired_time  &lt; now() and state = 1  and pay_status =1
+    </select>
+
+    <insert id="insertOrdertTicket" parameterType="cn.enn.wise.platform.mall.bean.bo.OrderTicket">
+        insert into order_ticket(order_id,ticket_code,`status`,create_time)
+        values
+               <foreach collection="list" separator="," index="orderTicket" item="orderTicket">
+                   (#{orderTicket.orderId},#{orderTicket.ticketCode},#{orderTicket.status},#{orderTicket.createTime})
+               </foreach>
+    </insert>
+
+    <update id="updateOrdersProfitStatus">
+        update orders set profit_status=#{profitStatus} where id = #{orderId}
+    </update>
+
+    <update id="updateOrderStatusToCancel">
+
+            update orders set state =#{state} where id = #{id} and pay_status= 1
+
+    </update>
+
+
+    <select id="getMaxOrderCode" resultType="string">
+        select order_code from orders where order_code like concat('%',#{code},'%') order by id desc limit 1;
+    </select>
+
+    <select id="selectProjectOrder" resultType="map">
+
+        select project_id,count(1) as num from  orders
+        where state= 9 and update_time between #{startTime} and  #{endTime}
+        group by project_id
+        having count(1)
+
+    </select>
+
+    <update id="updateQrCode">
+        update orders set qr_code = #{qrCode},proof = #{proof} where id = #{id}
+    </update>
+
+    <update id="updateGroupOrderId">
+        update orders set group_order_id = #{groupOrderId} where id = #{orderId} and order_type = 3
+    </update>
+
+    <update id="updateUserOfCouponId">
+        update orders set user_of_coupon_id = #{userOfCouponId} where id = #{id}
+    </update>
+
+    <update id="updateOrderTicketUrl" >
+        update orders set bat_code_other= #{batCodeOther} where id= #{id}
+    </update>
+
+    <update id="batchUpdateUserId">
+
+        update orders set user_id = #{userId} where id in
+
+        <foreach collection="orderIds" separator="," index="ids" item="ids" close=")" open="(">
+          #{ids}
+        </foreach>
+
+    </update>
+
+    <select id="selectFailedOrder" resultType="cn.enn.wise.platform.mall.bean.bo.Orders">
+        select * from orders where pay_status= 2 and state = 2 and ticket_order_code is null and bat_code_other is null and scenic_id= 13 and order_type = 7    </select>
+
+</mapper>

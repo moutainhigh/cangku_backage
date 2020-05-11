@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: cn.enn.wise.ssop:promotions-api:1.0-SNAPSHOT">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/cn/enn/wise/ssop/promotions-api/1.0-SNAPSHOT/promotions-api-1.0-20200506.094408-430.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/cn/enn/wise/ssop/promotions-api/1.0-SNAPSHOT/promotions-api-1.0-20200506.094408-430-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/cn/enn/wise/ssop/promotions-api/1.0-SNAPSHOT/promotions-api-1.0-20200506.094408-430-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

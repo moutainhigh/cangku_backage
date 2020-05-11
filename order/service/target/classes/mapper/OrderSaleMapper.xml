@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.ssop.service.order.mapper.OrderSaleMapper">
+
+
+    <resultMap id="orderSaleResultMap" type="cn.enn.wise.ssop.service.order.model.OrderSale">
+        <id column="id" property="id"/>
+        <result column="order_id" property="orderId"/>
+        <result column="order_no" property="orderNo"/>
+        <result column="sale_id" property="saleId"/>
+        <result column="sale_type" property="saleType"/>
+        <result column="sale_name" property="saleName"/>
+        <result column="rule_id" property="ruleId"/>
+        <result column="rule_name" property="ruleName"/>
+        <result column="extra_information" property="extraInformation"/>
+        <result column="parent_order_id" property="parentOrderId"/>
+    </resultMap>
+
+    <insert id="batchInsert" parameterType="cn.enn.wise.ssop.service.order.model.OrderSale">
+
+        INSERT INTO `order_sale` ( `order_id`, `order_no`, `sale_id`, `sale_name`, `sale_type`,`rule_id`,`rule_name`,`extra_information`,`parent_order_id`) VALUES
+        <foreach collection="list" separator="," index="index" item="sale" >
+            (
+            #{sale.orderId},
+            #{sale.orderNo},
+            #{sale.saleId},
+            #{sale.saleName},
+            #{sale.saleType},
+            #{sale.ruleId},
+            #{sale.ruleName},
+            #{sale.extraInformation},
+            #{sale.parentOrderId}
+            )
+        </foreach>
+    </insert>
+</mapper>

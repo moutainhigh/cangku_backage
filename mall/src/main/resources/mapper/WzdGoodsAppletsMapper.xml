@@ -1,0 +1,398 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.platform.mall.mapper.WzdGoodsAppletsMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.enn.wise.platform.mall.bean.bo.Goods">
+        <id column="id" property="id" />
+        <result column="project_id" property="projectId" />
+        <result column="resource_id" property="resourceId" />
+        <result column="category_id" property="categoryId" />
+        <result column="sales_unit" property="salesUnit" />
+        <result column="goods_name" property="goodsName" />
+        <result column="is_package" property="isPackage" />
+        <result column="base_price" property="basePrice" />
+        <result column="max_num" property="maxNum" />
+        <result column="service_place" property="servicePlace" />
+        <result column="goods_type" property="goodsType" />
+        <result column="create_time" property="createTime" />
+        <result column="create_user_id" property="createUserId" />
+        <result column="create_user_name" property="createUserName" />
+        <result column="update_time" property="updateTime" />
+        <result column="update_user_id" property="updateUserId" />
+        <result column="update_user_name" property="updateUserName" />
+    </resultMap>
+
+    <resultMap id="goodsListResultMap" type="cn.enn.wise.platform.mall.bean.vo.GoodsApiResVO">
+        <id column="id" property="id" />
+        <result column="goods_name" property="goodsName" />
+        <result column="is_package" property="isPackage" />
+        <result column="rules" property="rules" />
+        <result column="base_price" property="basePrice" />
+        <result column="goods_code" property="goodsCode" />
+        <result column="project_id" property="projectId" />
+        <result column="goods_status" property="goodsStatus" />
+        <result column="max_num" property="maxNum" />
+        <result column="service_place" property="servicePlace" />
+        <result column="goods_type" property="goodsType" />
+        <result column="retail_price" property="retailPrice" />
+        <result column="projectName" property="projectName" />
+        <result column="projectCode" property="projectCode" />
+        <result column="is_suit" property="isSuit"/>
+        <result column="is_by_period_operation" property="isByPeriodOperation" />
+        <collection property="goodsApiExtendResVoList" ofType="cn.enn.wise.platform.mall.bean.vo.GoodsApiExtendResVo">
+            <id column="pid" property="id"/>
+            <result column="timespan" property="timespan"/>
+            <result column="sale_price" property="salePrice"/>
+            <result column="period_id" property="periodId"/>
+            <result column="probability" property="probability"/>
+            <result column="operationSatus" property="operationSatus"/>
+            <result column="operation_date" property="operationDate"/>
+            <result column="degree_of_influence" property="degreeOfInfluence"/>
+            <result column="time_label" property="timeLabel" />
+            <result column="ship_line_info" property="shipLineInfo" />
+        </collection>
+    </resultMap>
+
+
+    <resultMap id="packageGoodsInfoResultMap" type="cn.enn.wise.platform.mall.bean.vo.PackageGoodVO">
+        <id column="id" property="id"/>
+        <result column="goods_name" property="goodsName"/>
+        <result column="base_price" property="basePrice"/>
+        <result column="sale_price" property="salePrice"/>
+        <result column="projectCode" property="projectCode"/>
+        <result column="is_by_period_operation" property="isByPeriodOperation"/>
+        <result column="project_id" property="projectId"/>
+        <result column="goodsExtendId" property="goodsExtendId"/>
+        <result column="img" property="img"/>
+        <result column="description" property="description"/>
+        <collection property="itemVOList" ofType="cn.enn.wise.platform.mall.bean.vo.PackageGoodsItemVO">
+            <id column="packageGoodsId" property="id"/>
+            <result column="packageGoodsName" property="packageGoodsName"/>
+            <result column="packageGoodsExtendId" property="packageGoodsExtendId"/>
+            <result column="servicePlaceId" property="servicePlaceId"/>
+            <result column="packageProjectName" property="packageProjectName"/>
+            <result column="packageProjectId" property="packageProjectId"/>
+            <result column="packageGoodsProjectCode" property="packageGoodsProjectCode"/>
+        </collection>
+    </resultMap>
+
+    <resultMap id="shipResultMap" type="cn.enn.wise.platform.mall.bean.vo.ShipTicketInfo">
+        <id column="id" property="id"/>
+        <result column="line_date" property="lineDate"/>
+        <result column="line_from" property="lineFrom"/>
+        <result column="line_to" property="lineTo"/>
+        <result column="cabin_name" property="cabinName"/>
+        <result column="ship_line_info" property="shipLineInfo"/>
+        <result column="goods_name" property="goodsName"/>
+        <result column="project_id" property="projectId"/>
+        <result column="timespan" property="timespan"/>
+        <collection property="ticketList" ofType="cn.enn.wise.platform.mall.bean.vo.TicketTypeInfo">
+            <id column="extendId" property="id"/>
+            <result column="ticket_type" property="ticketType"/>
+            <result column="ticketTypeName" property="ticketTypeName"/>
+            <result column="sale_price" property="salePrice"/>
+        </collection>
+    </resultMap>
+
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, project_id, resource_id, category_id, sales_unit, goods_name, is_package, base_price, max_num, service_place, goods_type, create_time, create_user_id, create_user_name, update_time, update_user_id, update_user_name
+    </sql>
+
+    <select id="getGoodsList" parameterType="cn.enn.wise.platform.mall.bean.param.GoodsReqParam" resultMap="goodsListResultMap">
+        select
+               g.id,
+               g.goods_name,
+               g.rules,
+               g.goods_status,
+               g.goods_code,
+               g.is_package,
+               g.base_price,
+               g.max_num,
+               g.service_place,
+               g.goods_type,
+               g.retail_price,
+               g.project_id,
+               g.is_by_period_operation,
+               gp.name as projectName,
+               ge.timespan,
+               ge.sale_price,
+               ge.period_id,
+               ge.time_label,
+               (
+               SELECT if(count(1)>0,1,2) from goods_extend ex
+                 inner join goods_project_operation o on o.period_id=ex.period_id
+               where  o.operation_date =gpo.operation_date
+                 and o.period_id=ge.period_id and (o.`status` = 0 or o.`status`=1)
+                 and o.service_place_id in ((SELECT
+        substring_index( substring_index( g.service_place_id, ',', b.id + 1 ), ',',- 1 ) name
+        FROM goods_project g
+        JOIN incr_num b ON b.id &lt; ( length( g.service_place_id ) - length( REPLACE ( g.service_place_id, ',', '' ) ) + 1 )
+        where g.id = g.project_id))
+
+               ) operationSatus,
+               gpo.operation_date,
+               gpo.probability,
+               gpo.degree_of_influence
+        from goods g
+                 left join  goods_extend  ge on ge.goods_id = g.id
+                 left join goods_project_operation  gpo on  gpo.period_id = ge.period_id
+                 left join goods_project gp on g.project_id =  gp.id
+        where g.project_id = #{projectId}
+          and g.is_by_period_operation = 1
+          and gpo.operation_date = #{operationDate}
+          and ge.`status`=1
+          and g.goods_status= 1
+        <if test="goodsId != null">
+            and g.id = #{goodsId}
+        </if>
+
+        group by ge.id,gpo.operation_date
+        order by  g.max_num, ge.timespan
+    </select>
+    <select id="getGoodsById" parameterType="cn.enn.wise.platform.mall.bean.param.GoodsReqParam" resultMap="goodsListResultMap">
+        select
+               g.id,
+               g.goods_name,
+               g.goods_status,
+               g.base_price,
+               g.is_package,
+               g.max_num,
+               g.goods_type,
+               g.retail_price,
+               g.is_by_period_operation,
+               g.project_id,
+               gp.name as projectName,
+               ge.timespan,
+               ge.sale_price,
+               ge.period_id,
+               ge.id as pid,
+               (
+               SELECT if(count(1)>0,1,2) from goods_extend ex
+               inner join goods_project_operation o on o.period_id=ex.period_id
+               where  o.operation_date =gpo.operation_date
+                 and o.period_id=ge.period_id and (o.`status` = 0 or o.`status`=1)
+                 and o.service_place_id in ((SELECT
+                     substring_index( substring_index( g.service_place_id, ',', b.id + 1 ), ',',- 1 ) name
+                 FROM goods_project g
+                          JOIN incr_num b ON b.id &lt; ( length( g.service_place_id ) - length( REPLACE ( g.service_place_id, ',', '' ) ) + 1 )
+                 where g.id = g.project_id))
+
+               ) operationSatus,
+               gpo.operation_date
+        from goods g
+          inner join goods_project gp on gp.id = g.project_id
+         left join  goods_extend  ge on ge.goods_id = g.id
+         left join goods_project_operation  gpo on  gpo.period_id = ge.period_id
+        where g.project_id =#{projectId}  and g.is_by_period_operation = 1 and  gpo.operation_date =#{operationDate}  and  ge.period_id =#{periodId} and goods_id=#{goodsId} and ge.status =1
+        group by ge.id,gpo.operation_date
+    </select>
+
+
+    <select id="getGoodsInfoById" resultMap="goodsListResultMap">
+        select
+            g.id,
+            g.goods_name,
+            g.goods_status,
+            g.base_price,
+            g.is_package,
+            g.max_num,
+            g.goods_type,
+            ge.timespan,
+            ge.sale_price,
+            ge.period_id,
+            ge.ship_line_info,
+            g.project_id,
+            g.retail_price,
+            g.is_suit,
+            g.is_by_period_operation,
+            ge.id as pid,
+            gp.name as projectName,
+            gp.project_code as projectCode
+        from goods g
+        left join  goods_extend  ge on ge.goods_id = g.id
+        inner join goods_project gp on gp.id = g.project_id
+        where g.id = #{goodsId} and ge.status = 1 and g.is_by_period_operation = 2
+    </select>
+
+    <select id="getGoodsListIsByPeriodOperation" resultMap="goodsListResultMap">
+        select
+            g.id,
+            g.goods_name,
+            g.goods_status,
+            g.base_price,
+            g.is_package,
+            g.max_num,
+            g.goods_type,
+            g.project_id,
+            g.rules,
+            g.retail_price,
+            g.is_by_period_operation,
+            ge.timespan,
+            ge.sale_price,
+            ge.period_id,
+            ge.id as pid,
+            gp.name as projectName
+        from goods g
+        left join  goods_extend  ge on ge.goods_id = g.id
+        left join  goods_project gp on g.project_id =  gp.id
+        where g.goods_status = 1
+          and  ge.status = 1
+          and g.is_by_period_operation = 2
+          and g.project_id = #{projectId}
+        <if test="goodsId != null">
+          and g.id = #{goodsId}
+        </if>
+
+    </select>
+
+    <select id="getByTag" resultType="cn.enn.wise.platform.mall.bean.vo.GoodsProjectVo">
+
+        SELECT
+
+        distinct  g.id AS goodsId,
+        g.img,
+        g.description,
+        g.rules,
+        g.goods_type ,
+        g.synopsis,
+        gp.id AS projectId,
+        gp. NAME AS projectName,
+
+        g.project_id,
+        g.goods_name,
+        g.retail_price as activityPrice,
+        g.base_price as basePrice,
+        g.is_suit,
+        g.orderby
+        FROM
+        goods g
+        inner join  goods_project gp   on g.project_id = gp.id
+        inner join  goods_extend ge on ge.goods_id = g.id
+        inner join ( select  tg.goods_id,
+        tg.tag_id
+        from tag_goods tg
+        where 1=1
+        and tg.goods_id in(select tg.goods_id from tag_goods tg
+        where tg.tag_id in
+        <foreach collection="list" item="id" index="index"
+                 open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+          )) a on a.goods_id = g.id
+        -- 商品和标签的关系
+        WHERE
+        1=1
+        AND g.goods_status = 1
+        and ge.status =1
+        group by g.id
+        order by g.orderby asc ,g.create_time desc
+
+
+
+    </select>
+
+
+
+    <select id="getPackageGoodsInfoById" resultMap="packageGoodsInfoResultMap">
+        select  g.id,
+                g.goods_name,
+                g.base_price,
+                g.project_id ,
+                g.is_by_period_operation,
+                g.img,
+                g.description,
+                ge.sale_price,
+                (select gp.project_code from goods g inner join goods_project gp on g.project_id = gp.id where g.id = #{goodsId}) as projectCode ,
+                ge.id as goodsExtendId,
+                gpi.sale_price as packageSalePrice,
+                gpi.goods_id as packageGoodsId,
+                gpi.goods_name as packageGoodsName,
+                gpi.goods_extend_id as packageGoodsExtendId,
+                gpi.service_place_id as servicePlaceId,
+                gp.name as packageProjectName,
+                gp.id as packageProjectId,
+                gp.project_code  as packageGoodsProjectCode
+        from goods g
+                 inner join goods_extend ge on g.id = ge.goods_id
+                 inner join goods_package_item gpi on ge.id = gpi.package_id
+                 inner join goods_project gp on gp.id = gpi.project_id
+        where 1=1
+          and g.goods_status = 1
+          and g.is_suit = 1
+          and g.id = #{goodsId}
+          and ge.`status`= 1
+    </select>
+
+
+    <select id="getMinPriceByGoodsId" resultType="cn.enn.wise.platform.mall.bean.vo.MinPriceVo">
+        select g.id,min(ge.sale_price) as minPrice
+        from goods g
+         inner join goods_extend  ge on g.id =ge.goods_id
+        where
+            g.goods_status = 1
+          and ge.status = 1
+          and g.id = #{goodsId}
+    </select>
+
+
+    <select id="getPackageGoodsByPackageId" resultType="cn.enn.wise.platform.mall.bean.bo.autotable.GoodsPackageItem">
+        select  id, package_id, goods_id, goods_name,
+               goods_extend_id, base_sale_price, base_retail_price, retail_price,
+               sale_price, project_id, project_name, service_place_id as servicePlaceId
+
+        from goods_package_item
+        where package_id = #{packageId}
+
+    </select>
+
+
+
+    <select id="getGoodsAndProjectByExtendId" resultType="map">
+        SELECT
+        g.id as goodsId,
+        gp.id as projectId,
+        gp.name as projectName
+
+        FROM
+        goods_extend ge
+        inner join goods g on g.id = ge.goods_id
+        inner join goods_project gp on g.project_id= gp.id
+
+        WHERE
+        ge.id = #{extendId}
+    </select>
+
+         <select id="getShipTicketInfo" resultMap="shipResultMap">
+        set @id=1;
+        select
+               @id as id,
+               ge.id as extendId,
+               ge.line_date,
+               ge.line_from,
+               ge.line_to,
+               ge.cabin_name,
+               ge.sale_price,
+               ge.ship_line_info,
+               ge.ticket_type,
+              ge.timespan,
+            --    g.goods_name,
+            --    g.project_id,
+            --    g.goods_status,
+               case ticket_type when 101 then '成人票' when 203 then '儿童票' else '' end ticketTypeName
+        from goods_extend ge
+             --     inner join goods g on g.id = ge.goods_id
+        where
+                ge.line_from=#{lineFrom}
+          and  ge.line_to=#{lineTo}
+          and ge.line_date =#{lineDate}
+          and ge.cabin_name=#{cabinName}
+          and ge.timespan=#{timespan}
+          and ge.nick_name=#{shipName}
+          and ge.status = 1
+        group by ticket_type,line_date
+    </select>
+
+</mapper>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.platform.mall.mapper.GroupRuleMapper">
+
+
+
+    <select id="getGroupRuleByGroupPromotionId" resultType="cn.enn.wise.platform.mall.bean.bo.group.GroupRuleBo">
+
+        select
+          gr.*
+        from group_rule gr,group_promotion gp
+        where gr.id=gp.rule_id and gp.id=#{groupPromotionId}
+    </select>
+
+
+</mapper>

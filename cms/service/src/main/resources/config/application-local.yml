@@ -1,0 +1,71 @@
+spring:
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 10.39.58.6:8849
+#        server-addr: 10.39.58.6:8848
+    sentinel:
+      transport:
+        dashboard: 127.0.0.1:8080
+  rabbitmq:
+    host: 10.38.128.83
+    port: 5672
+    username: tx
+    password: tx
+    publisher-confirms: true
+    publisher-returns: true
+    listener:
+      simple:
+        acknowledge-mode: manual
+        concurrency: 1
+        max-concurrency: 1
+        retry:
+          enabled: true
+    virtual-host: tx
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    timeout: 60s
+    database: 0
+    lettuce:
+      pool:
+        max-active: 200
+        max-idle: 20
+        min-idle: 5
+        max-wait: -1
+
+  datasource:
+    dynamic:
+      datasource:
+        master:
+#          url: jdbc:mysql://127.0.0.1:3306/cms_dev?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&serverTimezone=CTT
+#          username: root
+#          password: root
+          url: jdbc:mysql://10.39.58.6:3306/cms_dev?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&serverTimezone=CTT
+          username: root
+          password: root@trip
+          driver-class-name: com.mysql.jdbc.Driver
+        encdata:
+#          url: jdbc:mysql://127.0.0.1:3306/all_encdata_dev?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&serverTimezone=CTT
+#          username: root
+#          password: root
+          url: jdbc:mysql://10.39.58.6:3306/all_encdata_integrated?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&serverTimezone=CTT
+          username: root
+          password: root@trip
+          driver-class-name: com.mysql.jdbc.Driver
+
+  jackson:
+    time-zone: GMT+8
+  data:
+    elasticsearch:
+      cluster-name: elasticsearch
+      cluster-nodes: localhost:9300
+logging:
+  level:
+    org.springframework.data.mongodb.core: debug
+    com.gitee.sunchenbin.mybatis.actable: debug
+    cn.enn.wise.ssop.service.cms.mapper: debug
+  file: mall.log
+
+
+

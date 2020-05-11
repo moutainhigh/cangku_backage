@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.ssop.service.order.mapper.RequestLogMapper">
+
+
+    <insert id="createLogTable" parameterType="string">
+        CREATE TABLE ${tableName} (
+            `id` BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
+            `method` VARCHAR(255) NULL COMMENT '请求地址',
+            `request_body` TEXT NULL,
+            `request_headers` TEXT NULL COMMENT '请求头',
+            `request_type` VARCHAR(45) NULL COMMENT '请求方式',
+            `request_params` VARCHAR(255) NULL COMMENT '请求参数',
+            `sender` VARCHAR(255) NULL COMMENT '请求ip',
+            `response_body` TEXT NULL,
+            `response_headers` VARCHAR(255) NULL,
+            `response_status` VARCHAR(45) NULL COMMENT '响应状态',
+            `create_time` TIMESTAMP NULL COMMENT '创建时间',
+            PRIMARY KEY (`id`))
+            ENGINE = MyISAM
+            COMMENT = '请求日志记录表，按照月份记录';
+    </insert>
+
+
+    <select id="findTableName" resultType="string">
+
+        select table_name from information_schema.tables where TABLE_SCHEMA = 'ssop_order' and table_name= #{tableName};
+    </select>
+</mapper>

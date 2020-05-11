@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.platform.mall.mapper.GoodsProjectMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.enn.wise.platform.mall.bean.bo.GoodsProject">
+        <id column="id" property="id" />
+        <result column="name" property="name" />
+        <result column="create_time" property="createTime" />
+        <result column="create_user_id" property="createUserId" />
+        <result column="create_user_name" property="createUserName" />
+        <result column="update_time" property="updateTime" />
+        <result column="update_user_id" property="updateUserId" />
+        <result column="update_user_name" property="updateUserName" />
+        <result column="project_code" property="projectCode" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, name, create_time, create_user_id, create_user_name, update_time, update_user_id, update_user_name, project_code
+    </sql>
+
+
+    <select id="listProjectByCompanyId" resultType="cn.enn.wise.platform.mall.bean.bo.GoodsProject">
+       SELECT id,name,create_time,project_code,company_id,service_line,project_code,service_place_id,device_amount,project_present,project_start_date,project_manager,abbreviation
+        from goods_project
+        where company_id= #{companyId} and project_status = #{status}
+    </select>
+    <select id="getProjectByCompanyId" resultType="cn.enn.wise.platform.mall.bean.bo.GoodsProject">
+       SELECT id,name,create_time,project_code,company_id,service_line,project_code,service_place_id,device_amount,project_present,project_start_date,project_manager
+        from goods_project
+        where company_id= #{companyId} and project_status =1
+    </select>
+    <select id="getAllProjectName" resultType="cn.enn.wise.platform.mall.bean.bo.GoodsProject">
+       SELECT id,name
+        from goods_project
+        where project_status =1
+    </select>
+    <select id="getProjectById" resultType="cn.enn.wise.platform.mall.bean.bo.GoodsProject">
+       SELECT id,name,create_time,project_code,company_id,service_line,project_code,service_place_id,device_amount,project_present,project_start_date,project_manager
+        from goods_project
+        where id= #{id}
+
+    </select>
+
+    <select id="getOperationProject" resultType="cn.enn.wise.platform.mall.bean.bo.GoodsProject" >
+        select id,name,create_time,project_code,company_id,service_line,project_code,service_place_id,device_amount,project_present,project_start_date,project_manager
+        from goods_project where  company_id = #{companyId} and project_status = 1 and  FIND_IN_SET(#{userId},operation_staff);
+    </select>
+
+    <select id="getProjectListByStaffId" resultType="Map">
+        SELECT
+        group_concat(sp.id order by sp.service_place_name) placeId,
+        group_concat(sp.service_place_name order by sp.service_place_name) placeName,
+        gp.id projectId,
+        gp.name projectName,
+        gp.abbreviation name,
+        'false' isDefault
+        FROM goods_project gp
+        inner join service_place sp on (INSTR( concat(',',gp.service_place_id,','),concat(',',sp.id,",")))
+        where INSTR( concat(',',gp.operation_staff,','),concat(',',#{userId},",")) and gp.project_status=1
+        group by 3
+    </select>
+
+    <select id="getProjectListByTicketChanger" resultType="Map">
+        SELECT
+        group_concat(sp.id order by sp.service_place_name) placeId,
+        group_concat(sp.service_place_name order by sp.service_place_name) placeName,
+        gp.id projectId,
+        gp.name projectName,
+        gp.abbreviation name,
+        'false' isDefault
+        FROM goods_project gp
+        inner join service_place sp on (INSTR( concat(',',gp.service_place_id,','),concat(',',sp.id,",")))
+        where gp.project_status=1
+        group by 3
+    </select>
+
+    <select id="getProjectPlaceListByProjectId" resultType="Map">
+        SELECT
+        group_concat(sp.id order by sp.service_place_name) placeId,
+        group_concat(sp.service_place_name order by sp.service_place_name) placeName,
+        gp.id projectId,
+        gp.name projectName,
+        gp.abbreviation name,
+        'false' isDefault
+        FROM goods_project gp
+        inner join service_place sp on (INSTR( concat(',',gp.service_place_id,','),concat(',',sp.id,",")))
+        where gp.id=#{projectId}  and gp.project_status=1
+        group by 3
+    </select>
+
+    <select id="selectByGoodsId" resultType="Map">
+        select gp.id projectId ,gp.name projectName from goods_extend ge
+        inner join goods g on g.id =ge.goods_id
+        inner join goods_project gp on gp.id = g.project_id
+        where ge.id=#{goodsId}
+    </select>
+
+    <select id="selectByStaffIdAndProjectId" resultType="cn.enn.wise.platform.mall.bean.bo.GoodsProject">
+        SELECT * FROM goods_project where FIND_IN_SET(#{staffId},operation_staff) and id =#{projectId}
+    </select>
+
+    <select id="getProjectByPeriod" resultType="cn.enn.wise.platform.mall.bean.bo.GoodsProject">
+        SELECT
+            id,
+            `name`,
+            project_code
+        FROM
+            goods_project
+        WHERE
+                id IN (
+                SELECT
+                    project_id
+                FROM
+                    goods_project_period
+                GROUP BY
+                    project_id
+            )
+    </select>
+
+    <select id="listByTag" resultType="cn.enn.wise.platform.mall.bean.vo.GoodsProjectVo">
+        SELECT DISTINCT
+        gp.id ,
+        gp. NAME AS projectName
+        FROM
+        goods_project gp
+        INNER JOIN (
+        select
+        tp.project_id,
+        tp.tag_id
+        from tag_project tp
+        where 1=1
+        and tp.project_id in(select tp.project_id from tag_project tp
+        where tp.tag_id in
+        <foreach collection="list" open="(" close=")" separator="," item="index" index="index">
+            #{index}
+        </foreach>
+        )
+     ) b on gp.id = b.project_id
+
+
+    </select>
+
+
+</mapper>

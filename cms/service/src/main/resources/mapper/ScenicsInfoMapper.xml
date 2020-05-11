@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.ssop.service.cms.mapper.ScenicsInfoMapper">
+
+    <resultMap type="cn.enn.wise.ssop.service.cms.entity.oldcms.ScenicAreaEntity"
+               id="scenicAreaSide">
+        <id property="id" column="scenicId" />
+        <id property="name" column="name" />
+        <collection property="sides"
+                    ofType="cn.enn.wise.ssop.service.cms.entity.oldcms.LatAndLonEntity">
+            <id property="id" column="sideId" />
+            <result property="lat" column="sideLat" />
+            <result property="lon" column="sideLon" />
+            <result property="type" column="sideType" />
+            <result property="pre" column="sidePre" />
+            <result property="comment" column="sideComment" />
+            <result property="updateTime" column="sideUpdateTime" />
+        </collection>
+    </resultMap>
+
+    <insert id="insertScenicsInfo" parameterType="cn.enn.wise.ssop.api.cms.dto.request.oldcms.ScenicInfo">
+          insert into scenicres_info(rid, type, state, info, update_time, content) values
+          (#{id},#{type},#{state},#{html},now(),#{info})
+
+    </insert>
+    <insert id="insertToMedia" parameterType="cn.enn.wise.ssop.api.cms.dto.request.oldcms.PlayMedia">
+
+        insert into playmedia( name, type, url, is_used, comment, update_time, views, upvote, cover_url, scenic_id, scenic_name, video_time)
+        values
+        <foreach collection="list"  item="media" separator=",">
+            ( #{media.name},#{media.type},#{media.url},#{media.isUsed},#{media.comment},now(),#{media.views},#{media.upvote},#{media.coverUrl},#{media.scenicId},#{media.scenicName},#{media.videoTime} )
+        </foreach>
+    </insert>
+
+    <update id="updateScenics" parameterType="cn.enn.wise.ssop.api.cms.dto.request.oldcms.ScenicInfo">
+
+        update scenicres set knowledges_ids = #{knowledgesIds},actinfo_ids = #{actinfoIds}
+        where  id = #{id}
+    </update>
+
+    <update id="updateState" parameterType="cn.enn.wise.ssop.api.cms.dto.request.oldcms.ScenicInfo">
+    update scenicres_info set state =#{state}    where rid = #{id}
+    </update>
+    <update id="updateScenicsInfo" parameterType="cn.enn.wise.ssop.api.cms.dto.request.oldcms.ScenicInfo">
+
+        update scenicres_info set info = #{html},content=#{info},update_time=now()
+        where rid=#{id}
+
+    </update>
+    <delete id="deletePlayMediaByScenicId">
+        delete from playmedia where scenic_id = #{scenicId}
+    </delete>
+    <delete id="deleteScenicInfoById">
+        delete from scenicres_info where rid=#{id}
+    </delete>
+    <delete id="deletePlayMediaById">
+        delete from playmedia where id=#{id}
+    </delete>
+    <select id="getScenicsInfoById" resultType="cn.enn.wise.ssop.api.cms.dto.request.oldcms.ScenicInfo">
+        SELECT
+       sce.id,
+       sce.name,
+       sce.knowledges_ids AS knowledgesIds,
+       sce.actinfo_ids AS actinfoIds,
+       (select group_concat(title) from knowledges k where find_in_set(k.id,sce.knowledges_ids)) as knowledgesNames,
+       (select group_concat(act.name) from scenicres act where act.type=4 and find_in_set(act.id,sce.actinfo_ids)) as actinfoNames,
+       info.info AS html
+        FROM
+             scenicres sce
+                    LEFT JOIN scenicres_info info ON sce.id = info.rid
+        WHERE
+            sce.id = #{id}
+    </select>
+    <select id="getPlayMediaByScenicId" resultType="cn.enn.wise.ssop.api.cms.dto.request.oldcms.PlayMedia">
+
+      select  id,scenic_id as scenicId,url
+      from playmedia where scenic_id = #{scenicId}
+
+        order by update_time desc
+    </select>
+    <select id="getScenicInfoList" parameterType="cn.enn.wise.ssop.api.cms.dto.request.oldcms.ScenicInfo"
+    	resultType="cn.enn.wise.ssop.api.cms.dto.request.oldcms.ScenicInfo">
+        SELECT
+			sce.id,
+			sce.name,
+			sce.red_langue AS audiourl,
+			info.state,
+			media.counts AS urlCounts
+		FROM
+			scenicres sce
+		JOIN 
+		   scenicres_info info ON sce.id = info.rid
+		LEFT JOIN (
+			SELECT
+				count(scenic_id) AS counts,
+				scenic_id
+			FROM
+				playmedia
+			WHERE
+				is_used = 1
+			GROUP BY
+				scenic_id
+		) media ON media.scenic_id = sce.id
+		WHERE
+			sce.type = 1
+		AND sce.scenic = #{companyId}
+        <if test="scenicInfo.state != null">
+            and state =#{scenicInfo.state}
+        </if>
+        <if test="scenicInfo.name != null and scenicInfo.name != ''">
+            and name like concat('%',#{scenicInfo.name},'%')
+        </if>
+    </select>
+    <select id="getScenicSpotVo" resultType="cn.enn.wise.ssop.api.cms.dto.request.oldcms.ScenicSpotVo">
+        SELECT id,name FROM scenicres where scenic= #{companyId} and type = 1  and id not in(select rid from scenicres_info)
+    </select>
+    <select id="getScenicInfo" resultType="cn.enn.wise.ssop.api.cms.dto.request.oldcms.ScenicInfo">
+        select id,state from scenicres_info where rid = #{id}
+    </select>
+
+    <select id="getScenicsInfoAppletById" resultType="cn.enn.wise.ssop.api.cms.dto.response.ScenicInfoDTO">
+        SELECT
+            scs.id,
+            scs.`code`,
+            scs.`name`,
+            scs.type,
+            scs.lat,
+            scs.lon,
+            scs.start_time,
+            scs.end_time,
+            scs.suitable_time,
+            scs.optimum_time,
+            scs.radius,
+            scs.pic_url,
+            scs.red_langue,
+            scs.video,
+            scs.description,
+            scs.update_time,
+            scs.address,
+            scs.ispush,
+            scs.knowledges_ids
+        FROM
+            scenicres scs
+        WHERE
+            scs.id = #{id}
+    </select>
+
+    <select id="getAppletFineScenicsList" resultType="cn.enn.wise.ssop.api.cms.dto.response.ScenicFineDTO">
+        SELECT
+            scs.id,
+            scs.`name`,
+            scs.lat,
+            scs.lon,
+            scs.pic_url,
+            scs.red_langue,
+            GROUP_CONCAT(tg.tag) AS tag,
+            sa. NAME scenicAreaName
+        FROM
+            scenicres scs
+        LEFT JOIN res_tag rtg ON rtg.res = scs.id
+        LEFT JOIN tag tg ON tg.id = rtg.tag
+        INNER JOIN scenicarea sa ON sa.id = scs.scenic
+        WHERE
+            scs.type = 1
+        AND scs.scenic IN
+        <foreach collection="scenicIds" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+        GROUP BY
+            scs.id
+    </select>
+
+
+    <select id="getNearbyRestsList" resultType="cn.enn.wise.ssop.api.cms.dto.response.NearbyRestsAppDTO">
+        SELECT
+            scs.id,
+            scs.`name`,
+            scs.lat,
+            scs.lon,
+            scs.pic_url AS coverUrl,
+            scs.address
+        FROM
+            scenicres scs
+        WHERE
+            scs.type = #{type}
+        AND scs.is_used = 1
+    </select>
+    <select id="selectScenicAreaSelectList" resultType="cn.enn.wise.uncs.base.pojo.response.SelectData">
+        select
+          scenic_area_id as `value`,
+          scenic_area_name as label
+        from tenant_scenic_area
+        where company_id=#{companyId}
+    </select>
+    <select id="selectAllScenicAreaPOIList" resultType="cn.enn.wise.ssop.api.cms.dto.response.POIListDTO">
+        select
+          scs.id as poiId,
+          scs.name as poiName,
+          sa.id as scenicAreaId,
+          sa.name as scenicAreaName
+        from scenicres scs,scenicarea sa
+        where 1=1
+        and scs.scenic=sa.id
+        <if test="POIType!=-1">
+            and scs.type=#{POIType}
+        </if>
+        <if test="likePOIName!=null">
+            and scs.name like concat('%',#{likePOIName},'%')
+        </if>
+        and scs.scenic in
+        <foreach collection="scenicIds" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+
+
+    </select>
+
+    <select id="getWeatherById" resultType="cn.enn.wise.ssop.api.cms.dto.response.WeatherDTO">
+        SELECT
+            wen.temperature AS todayTemperature,
+            wen.weather,
+            wen.wind AS windDirection,
+            wen.windp AS windScale,
+            wen.date_time AS dateTimeDay,
+            wen.forecast
+        FROM
+            weather_sun wen
+        WHERE
+            wen.city_code = #{cityCode}
+        ORDER BY
+            wen.date_time DESC,
+            wen.pub_time DESC
+        LIMIT 1
+    </select>
+    <select id="getScenicAreaSideByScneicAreaIds"
+            resultMap="scenicAreaSide">
+        SELECT
+                t1.id AS
+                scenicId,
+                t1.name as name,
+                t2.id AS sideId,
+                t2.lat AS sideLat,
+                t2.lon AS sideLon,
+                t2.type AS sideType,
+                t2.pre AS sidePre,
+                t2.comment AS sideComment,
+                t2.update_time AS sideUpdateTime
+        FROM scenicarea t1
+        JOIN latlon t2 ON
+                t1.id = t2.entity_ref
+        WHERE t2.type=4
+        and t1.id in
+        <foreach item="id" collection="scneicAreaIds" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+    <select id="selectScenicAaeaById" resultType="cn.enn.wise.ssop.service.cms.entity.oldcms.ScenicAreaEntity">
+        select *,city as cityCode from scenicarea where id=#{id}
+    </select>
+
+</mapper>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.platform.mall.mapper.GroupPromotionGoodsMapper">
+
+    <select id="listPromotionGoodsByGoodsId" resultType="Map">
+        select
+        count(p.id) total
+        from
+        group_promotion p
+        inner join group_promotion_goods pg on pg.group_promotion_id = p.id
+        inner join goods g on g.id =pg.goods_id
+        where
+        p.status = 2
+        and g.id=#{goodsId}
+        <if test="id != 0">
+            and p.id != #{id}
+        </if>
+        limit 1;
+    </select>
+    <select id="getPromotionGoods" resultType="cn.enn.wise.platform.mall.bean.bo.group.GroupPromotionGoodsBo">
+        SELECT
+            group_promotion_id,
+            goods_id,
+            group_price,
+            project_id
+        FROM
+            group_promotion_goods
+
+        WHERE
+                group_promotion_id IN (
+                SELECT
+                    id
+                FROM
+                    group_promotion
+                WHERE
+                    STATUS = 2
+            )
+    </select>
+
+    <select id="getPromotionGoodByGoodsId" resultType="cn.enn.wise.platform.mall.bean.bo.group.GroupPromotionGoodsBo">
+
+        SELECT
+            gpg.group_price,
+            gpg.retail_price,
+            a.group_limit
+        FROM
+            group_promotion_goods gpg
+                INNER JOIN (
+                SELECT
+                    gp.id,
+                    gr.group_limit
+                FROM
+                    group_promotion gp
+                        LEFT JOIN group_rule gr ON gp.rule_id = gr.id
+                WHERE
+                   1=1
+                  AND gp.id = #{promotionId}
+            ) a
+        WHERE
+            gpg.group_promotion_id = (a.id)
+          AND gpg.goods_id = #{goodId}
+</select>
+
+
+    <select id="getMinGroupPriceByProject" resultType="map">
+        SELECT
+            MIN(group_price) as groupPrice
+        FROM
+            group_promotion_goods
+        WHERE
+            project_id = #{projectId}
+          AND group_promotion_id = #{promotionId}
+    </select>
+
+    <select id="getPromotionGoodInfo" resultType="cn.enn.wise.platform.mall.bean.bo.group.GroupPromotionGoodsBo">
+        select
+            gpg.id, gpg.group_promotion_id, gpg.project_id, gpg.goods_id,
+            gpg.goods_price, gpg.group_price, gpg.goods_num, gpg.goods_name,
+            gpg.retail_price, gpg.goods_cost,gp.status as promotionStatus
+
+        from group_promotion_goods  gpg
+        inner join group_promotion gp on gp.id = gpg.group_promotion_id
+        where  gpg.group_promotion_id = #{promotionId}   and gpg.goods_id = #{goodId}
+    </select>
+</mapper>

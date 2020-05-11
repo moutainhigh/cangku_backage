@@ -1,0 +1,526 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.platform.mall.mapper.GoodsCouponPromotionMapper">
+
+
+
+
+    <select id="getNewPeopleCoupon"  resultType="cn.enn.wise.platform.mall.bean.param.CouponParam">
+        SELECT
+            gcp.id promotionId,
+            gc.id couponId,
+            gcr.id ruleId,
+            gc.name,
+            gc.use_platform usePlatform,
+            gc.org_name orgName,
+            gc.coupon_type couponType,
+            gc.price,
+            gc.get_limit getLimit,
+            gc.geted_size getedSize,
+            gc.init_size initSize,
+            gc.start_time startTime,
+            gc.validity_time validityTime,
+            gc.validity_day validityDay,
+            gc.validity_type validityType,
+            gc.remark,
+            gc.get_type getType,
+            gc.init_type initType,
+            gcr.use_rule useRule,
+            gcr.min_use minUse,
+            gcr.is_send isSend,
+            gcr.is_share isShare,
+            gcr.overlay_use_coupon_id overlayUseCouponId,
+            gcr.is_overlay isOverlay,
+            gcr.tag,
+            gcr.is_project_use isProjectUse,
+            gcr.project_id projectId,
+            gcp.code,
+            gcp.company_id companyId,
+            gcp.company_name companyName,
+            gcp.scenic_spots scenicSpots,
+            gcp.cost,
+            gcp.promotion_type promotionType,
+            gcp.manager,
+            gcp.promotion_crowd_type promotionCrowdType,
+            gcp.promotion_crowd promotionCrowd
+        FROM
+             goods_coupon_promotion gcp
+        INNER JOIN goods_coupon_rule gcr ON  gcr.promotion_id  = gcp.id
+        INNER JOIN goods_coupon gc ON gc.id = gcr.goods_coupon_id AND gcr.goods_coupon_id = gc.id
+        WHERE
+            gcp.company_id = #{companyId}
+        AND gcp.promotion_crowd_type = 2
+        AND gcp.promotion_crowd = 1
+        AND gcp.end_time > SYSDATE()
+        AND gcp.`status` = 2
+        AND gc.status=1
+    </select>
+
+    <select id="getNewPeopleCouponByUserId"  resultType="cn.enn.wise.platform.mall.bean.param.CouponParam">
+        SELECT
+            gcp.id promotionId,
+            gc.id couponId,
+            gcr.id ruleId,
+            gc.name,
+            gc.use_platform usePlatform,
+            gc.org_name orgName,
+            gc.coupon_type couponType,
+            gc.price,
+            gc.get_limit getLimit,
+            gc.geted_size getedSize,
+            gc.init_size initSize,
+            gc.start_time startTime,
+            gc.validity_time validityTime,
+            gc.validity_day validityDay,
+            gc.validity_type validityType,
+            gc.remark,
+            gc.get_type getType,
+            gc.init_type initType,
+            gcr.use_rule useRule,
+            gcr.min_use minUse,
+            gcr.is_send isSend,
+            gcr.is_share isShare,
+            gcr.overlay_use_coupon_id overlayUseCouponId,
+            gcr.is_overlay isOverlay,
+            gcr.tag,
+            gcr.is_project_use isProjectUse,
+            gcr.project_id projectId,
+            gcp.code,
+            gcp.company_id companyId,
+            gcp.company_name companyName,
+            gcp.scenic_spots scenicSpots,
+            gcp.cost,
+            gcp.promotion_type promotionType,
+            gcp.manager,
+            gcp.promotion_crowd_type promotionCrowdType,
+            gcp.promotion_crowd promotionCrowd
+        FROM
+            goods_coupon_promotion gcp
+        INNER JOIN goods_coupon_rule gcr ON  gcr.promotion_id  = gcp.id
+        INNER JOIN goods_coupon gc ON gc.id = gcr.goods_coupon_id AND gcr.goods_coupon_id = gc.id
+        WHERE
+            gcp.company_id = #{companyId}
+        AND gcp.promotion_crowd_type = 2
+        AND gcp.promotion_crowd = 1
+        AND gcp.end_time > SYSDATE()
+        AND gcp.`status` = 2
+        AND gc.status=1
+        and not exists (select * from user_of_coupon uoc where uoc.user_id = #{userId} and uoc.goods_coupon_id = gc.id and uoc.promotion_id = gcp.id and uoc.status=1)
+    </select>
+
+    <select id="getDistributorCouponByUserId"  resultType="cn.enn.wise.platform.mall.bean.param.CouponParam">
+        SELECT
+            gcp.id promotionId,
+            gc.id couponId,
+            gcr.id ruleId,
+            gc.name,
+            gc.use_platform usePlatform,
+            gc.org_name orgName,
+            gc.coupon_type couponType,
+            gc.price,
+            gc.get_limit getLimit,
+            gc.geted_size getedSize,
+            gc.init_size initSize,
+            gc.start_time startTime,
+            gc.validity_time validityTime,
+            gc.validity_day validityDay,
+            gc.validity_type validityType,
+            gc.remark,
+            gc.get_type getType,
+            gc.init_type initType,
+            gcr.use_rule useRule,
+            gcr.min_use minUse,
+            gcr.is_send isSend,
+            gcr.is_share isShare,
+            gcr.overlay_use_coupon_id overlayUseCouponId,
+            gcr.is_overlay isOverlay,
+            gcr.tag,
+            gcr.is_project_use isProjectUse,
+            gcr.project_id projectId,
+            gcp.code,
+            gcp.company_id companyId,
+            gcp.company_name companyName,
+            gcp.scenic_spots scenicSpots,
+            gcp.cost,
+            gcp.promotion_type promotionType,
+            gcp.manager,
+            gcp.promotion_crowd_type promotionCrowdType,
+            gcp.promotion_crowd promotionCrowd
+        FROM
+            goods_coupon_promotion gcp
+        INNER JOIN goods_coupon_rule gcr ON  gcr.promotion_id  = gcp.id
+        INNER JOIN goods_coupon gc ON gc.id = gcr.goods_coupon_id AND gcr.goods_coupon_id = gc.id
+        WHERE
+            gcp.company_id = #{companyId}
+        AND gcp.promotion_crowd_type = 2
+        AND gcp.promotion_crowd = 2
+        AND gcp.end_time > SYSDATE()
+        AND gcp.`status` = 2
+        AND gc.status=1
+        and not exists (select * from user_of_coupon uoc where uoc.user_id = #{userId} and uoc.goods_coupon_id = gc.id and uoc.promotion_id = gcp.id and uoc.status=1 and uoc.phone=#{phone})
+    </select>
+
+
+
+    <select id="getCouponByStatus"  resultType="cn.enn.wise.platform.mall.bean.param.CouponParam">
+        SELECT
+            uoc.id userOfCouponId,
+            uoc.user_id userId,
+            gcp.id promotionId,
+            gc.id couponId,
+            gcr.id ruleId,
+            gc.name,
+            gc.use_platform usePlatform,
+            gc.org_name orgName,
+            gc.coupon_type couponType,
+            gc.price,
+            gc.get_limit getLimit,
+            gc.geted_size getedSize,
+            gc.init_size initSize,
+            gc.start_time startTime,
+            gc.validity_day validityDay,
+            gc.validity_type validityType,
+            gc.remark,
+            gc.get_type getType,
+            gc.init_type initType,
+            gcr.use_rule useRule,
+            gcr.min_use minUse,
+            gcr.is_send isSend,
+            gcr.is_share isShare,
+            gcr.overlay_use_coupon_id overlayUseCouponId,
+            gcr.is_overlay isOverlay,
+            gcr.tag,
+            gcr.is_project_use isProjectUse,
+            gcr.project_id projectId,
+            gcp.code,
+            gcp.company_id companyId,
+            gcp.company_name companyName,
+            gcp.scenic_spots scenicSpots,
+            gcp.cost,
+            gcp.promotion_type promotionType,
+            gcp.manager,
+            gcp.promotion_crowd_type promotionCrowdType,
+            gcp.promotion_crowd promotionCrowd,
+            uoc.validity_time validityTime,
+            uoc.status,
+            uoc.coupon_resource couponResource,
+            uoc.open_id openId,
+            uoc.phone
+        FROM
+            user_of_coupon uoc
+        INNER JOIN goods_coupon_promotion gcp ON gcp.id = uoc.promotion_id
+        INNER JOIN goods_coupon_rule gcr ON gcr.promotion_id = gcp.id
+        INNER JOIN goods_coupon gc ON gc.id = gcr.goods_coupon_id
+        AND gcr.goods_coupon_id = uoc.goods_coupon_id
+        WHERE
+            uoc.user_id = #{userId}
+        AND uoc.status=#{status}
+        AND gcp.company_id =  #{companyId}
+        AND gc. STATUS = 1
+        AND uoc.phone =''
+    </select>
+
+    <select id="getCouponByStatus1"  resultType="cn.enn.wise.platform.mall.bean.param.CouponParam">
+        SELECT
+            uoc.id userOfCouponId,
+            uoc.user_id userId,
+            gcp.id promotionId,
+            gc.id couponId,
+            gcr.id ruleId,
+            gc.name,
+            gc.use_platform usePlatform,
+            gc.org_name orgName,
+            gc.coupon_type couponType,
+            gc.price,
+            gc.get_limit getLimit,
+            gc.geted_size getedSize,
+            gc.init_size initSize,
+            gc.start_time startTime,
+            gc.validity_day validityDay,
+            gc.validity_type validityType,
+            gc.remark,
+            gc.get_type getType,
+            gc.init_type initType,
+            gcr.use_rule useRule,
+            gcr.min_use minUse,
+            gcr.is_send isSend,
+            gcr.is_share isShare,
+            gcr.overlay_use_coupon_id overlayUseCouponId,
+            gcr.is_overlay isOverlay,
+            gcr.tag,
+            gcr.is_project_use isProjectUse,
+            gcr.project_id projectId,
+            gcp.code,
+            gcp.company_id companyId,
+            gcp.company_name companyName,
+            gcp.scenic_spots scenicSpots,
+            gcp.cost,
+            gcp.promotion_type promotionType,
+            gcp.manager,
+            gcp.promotion_crowd_type promotionCrowdType,
+            gcp.promotion_crowd promotionCrowd,
+            uoc.validity_time validityTime,
+            uoc.status,
+            uoc.coupon_resource couponResource,
+            uoc.open_id openId,
+            uoc.phone
+        FROM
+             	user_of_coupon uoc
+        INNER JOIN goods_coupon_promotion gcp ON gcp.id = uoc.promotion_id
+        INNER JOIN goods_coupon_rule gcr ON gcr.promotion_id = gcp.id
+        INNER JOIN goods_coupon gc ON gc.id = gcr.goods_coupon_id
+        AND gcr.goods_coupon_id = uoc.goods_coupon_id
+        WHERE
+            uoc.user_id = #{userId}
+        AND uoc.status IN(1, 4, 5)
+        AND gcp.company_id =  #{companyId}
+        AND gcp.`status` = 2
+        AND gc.status = 1
+        AND uoc.phone =''
+    </select>
+
+    <select id="getCouponByStatusAndPhone"  resultType="cn.enn.wise.platform.mall.bean.param.CouponParam">
+        SELECT
+            uoc.id userOfCouponId,
+            uoc.user_id userId,
+            gcp.id promotionId,
+            gc.id couponId,
+            gcr.id ruleId,
+            gc.name,
+            gc.use_platform usePlatform,
+            gc.org_name orgName,
+            gc.coupon_type couponType,
+            gc.price,
+            gc.get_limit getLimit,
+            gc.geted_size getedSize,
+            gc.init_size initSize,
+            gc.start_time startTime,
+            gc.validity_day validityDay,
+            gc.validity_type validityType,
+            gc.remark,
+            gc.get_type getType,
+            gc.init_type initType,
+            gcr.use_rule useRule,
+            gcr.min_use minUse,
+            gcr.is_send isSend,
+            gcr.is_share isShare,
+            gcr.overlay_use_coupon_id overlayUseCouponId,
+            gcr.is_overlay isOverlay,
+            gcr.tag,
+            gcr.is_project_use isProjectUse,
+            gcr.project_id projectId,
+            gcp.code,
+            gcp.company_id companyId,
+            gcp.company_name companyName,
+            gcp.scenic_spots scenicSpots,
+            gcp.cost,
+            gcp.promotion_type promotionType,
+            gcp.manager,
+            gcp.promotion_crowd_type promotionCrowdType,
+            gcp.promotion_crowd promotionCrowd,
+            uoc.validity_time validityTime,
+            uoc.status,
+            uoc.coupon_resource couponResource,
+            uoc.open_id openId,
+            uoc.phone
+        FROM
+            user_of_coupon uoc
+        INNER JOIN goods_coupon_promotion gcp ON gcp.id = uoc.promotion_id
+        INNER JOIN goods_coupon_rule gcr ON gcr.promotion_id = gcp.id
+        INNER JOIN goods_coupon gc ON gc.id = gcr.goods_coupon_id
+        AND gcr.goods_coupon_id = uoc.goods_coupon_id
+        WHERE
+            uoc.user_id = #{userId}
+        AND uoc.status=#{status}
+        AND gcp.company_id =  #{companyId}
+        AND gc. STATUS = 1
+        AND uoc.phone=#{phone}
+    </select>
+
+
+    <select id="getGoods"  resultType="java.util.Map">
+       select g.id,g.project_id pid from goods g INNER JOIN promotion_and_goods pag on pag.goods_id=g.id and pag.promotion_id=#{promotionId}
+    </select>
+
+
+
+    <select id="getCouponInfo"  resultType="cn.enn.wise.platform.mall.bean.param.CouponParam">
+       SELECT
+            uoc.id userOfCouponId,
+            uoc.user_id userId,
+            gcp.id promotionId,
+            gc.id couponId,
+            gcr.id ruleId,
+            gc.name,
+            gc.use_platform usePlatform,
+            gc.org_name orgName,
+            gc.coupon_type couponType,
+            gc.price,
+            gc.get_limit getLimit,
+            gc.geted_size getedSize,
+            gc.init_size initSize,
+            gc.start_time startTime,
+            gc.validity_day validityDay,
+            gc.validity_type validityType,
+            gc.remark,
+            gc.get_type getType,
+            gc.init_type initType,
+            gcr.use_rule useRule,
+            gcr.min_use minUse,
+            gcr.is_send isSend,
+            gcr.is_share isShare,
+            gcr.overlay_use_coupon_id overlayUseCouponId,
+            gcr.is_overlay isOverlay,
+            gcr.tag,
+            gcr.is_project_use isProjectUse,
+            gcr.project_id projectId,
+            gcp.code,
+            gcp.company_id companyId,
+            gcp.company_name companyName,
+            gcp.scenic_spots scenicSpots,
+            gcp.cost,
+            gcp.promotion_type promotionType,
+            gcp.manager,
+            gcp.promotion_crowd_type promotionCrowdType,
+            gcp.promotion_crowd promotionCrowd,
+            gcp.status promotionStatus,
+            uoc.validity_time validityTime,
+            uoc.status,
+            uoc.coupon_resource couponResource,
+            uoc.open_id openId,
+            uoc.phone
+        FROM
+             	user_of_coupon uoc
+        INNER JOIN goods_coupon_promotion gcp ON uoc.promotion_id = gcp.id
+        INNER JOIN goods_coupon_rule gcr ON gcr.promotion_id = gcp.id
+        INNER JOIN goods_coupon gc ON gc.id = gcr.goods_coupon_id
+        AND uoc.goods_coupon_id = gc.id
+        WHERE  uoc.id = #{id}
+    </select>
+
+
+    <select id="selectCouponNotGeted"   resultType="cn.enn.wise.platform.mall.bean.param.CouponParam">
+        SELECT
+            gcp.id promotionId,
+            gc.id couponId,
+            gcr.id ruleId,
+            gc.name,
+            gc.use_platform usePlatform,
+            gc.org_name orgName,
+            gc.coupon_type couponType,
+            gc.price,
+            gc.get_limit getLimit,
+            gc.geted_size getedSize,
+            gc.init_size initSize,
+            gc.start_time startTime,
+            gc.validity_time validityTime,
+            gc.validity_day validityDay,
+            gc.validity_type validityType,
+            gc.remark,
+            gc.get_type getType,
+            gc.init_type initType,
+            gcr.use_rule useRule,
+            gcr.min_use minUse,
+            gcr.is_send isSend,
+            gcr.is_share isShare,
+            gcr.overlay_use_coupon_id overlayUseCouponId,
+            gcr.is_overlay isOverlay,
+            gcr.tag,
+            gcr.is_project_use isProjectUse,
+            gcr.project_id projectId,
+            gcp.code,
+            gcp.company_id companyId,
+            gcp.company_name companyName,
+            gcp.scenic_spots scenicSpots,
+            gcp.cost,
+            gcp.promotion_type promotionType,
+            gcp.manager,
+            gcp.promotion_crowd_type promotionCrowdType,
+            gcp.promotion_crowd promotionCrowd
+            FROM
+                goods_coupon_promotion gcp
+            INNER JOIN goods_coupon_rule gcr ON  gcr.promotion_id  = gcp.id
+            INNER JOIN goods_coupon gc ON gc.id = gcr.goods_coupon_id  AND gcr.goods_coupon_id = gc.id
+            WHERE
+            gcp.company_id =  #{companyId}
+            AND gcp.promotion_crowd_type = 1
+            AND  SYSDATE()>gcp.start_time
+            AND gcp.end_time > SYSDATE()
+            AND gc.init_size>gc.geted_size and gc.init_type = 2
+            AND gcp.`status` = 2
+             AND gc.status=1
+            AND NOT EXISTS (
+            SELECT
+              *
+            FROM
+               user_of_coupon uoc
+            WHERE
+               uoc.user_id = #{userId}
+               AND uoc.goods_coupon_id = gc.id
+               and uoc.promotion_id=gcp.id
+               and uoc.status=1
+            )
+            union
+            SELECT
+            gcp.id promotionId,
+            gc.id couponId,
+            gcr.id ruleId,
+            gc.name,
+            gc.use_platform usePlatform,
+            gc.org_name orgName,
+            gc.coupon_type couponType,
+            gc.price,
+            gc.get_limit getLimit,
+            gc.geted_size getedSize,
+            gc.init_size initSize,
+            gc.start_time startTime,
+            gc.validity_time validityTime,
+            gc.validity_day validityDay,
+            gc.validity_type validityType,
+            gc.remark,
+            gc.get_type getType,
+            gc.init_type initType,
+            gcr.use_rule useRule,
+            gcr.min_use minUse,
+            gcr.is_send isSend,
+            gcr.is_share isShare,
+            gcr.overlay_use_coupon_id overlayUseCouponId,
+            gcr.is_overlay isOverlay,
+            gcr.tag,
+            gcr.is_project_use isProjectUse,
+            gcr.project_id projectId,
+            gcp.code,
+            gcp.company_id companyId,
+            gcp.company_name companyName,
+            gcp.scenic_spots scenicSpots,
+            gcp.cost,
+            gcp.promotion_type promotionType,
+            gcp.manager,
+            gcp.promotion_crowd_type promotionCrowdType,
+            gcp.promotion_crowd promotionCrowd
+            FROM
+                goods_coupon_promotion gcp
+            INNER JOIN goods_coupon_rule gcr ON  gcr.promotion_id  = gcp.id
+            INNER JOIN goods_coupon gc ON gc.id = gcr.goods_coupon_id  AND gcr.goods_coupon_id = gc.id
+            WHERE
+            gcp.company_id =  #{companyId}
+            AND gcp.promotion_crowd_type = 1
+            AND  SYSDATE()>gcp.start_time
+            AND gcp.end_time > SYSDATE()
+            AND  gc.init_type = 1
+            AND gcp.`status` = 2
+             AND gc.status=1
+            AND NOT EXISTS (
+            SELECT
+              *
+            FROM
+               user_of_coupon uoc
+            WHERE
+               uoc.user_id = #{userId}
+               AND uoc.goods_coupon_id = gc.id
+               and uoc.promotion_id=gcp.id
+               and uoc.status=1
+            )
+    </select>
+
+</mapper>

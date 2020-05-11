@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://maven.apache.org/POM/4.0.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="project" type="ns:projectType" xmlns:ns="http://maven.apache.org/POM/4.0.0"/>
+  <xs:complexType name="parentType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="groupId"/>
+      <xs:element type="xs:string" name="artifactId"/>
+      <xs:element type="xs:string" name="version"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="propertiesType">
+    <xs:sequence>
+      <xs:element name="profiles.active" minOccurs="0">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="local"/>
+            <xs:enumeration value="test"/>
+            <xs:enumeration value="integrated"/>
+            <xs:enumeration value="prod"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element type="xs:string" name="project.build.sourceEncoding" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>文件拷贝时的编码</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element type="xs:string" name="project.reporting.outputEncoding" minOccurs="0"/>
+      <xs:element type="xs:string" name="maven.compiler.encoding" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>编译时的编码</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element type="xs:string" name="java.version" minOccurs="0"/>
+      <xs:element type="xs:string" name="spring-cloud.version" minOccurs="0"/>
+      <xs:element type="xs:string" name="junit.version" minOccurs="0"/>
+      <xs:element type="xs:string" name="hutool.version" minOccurs="0"/>
+      <xs:element type="xs:string" name="docker.image.prefix" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="profileType">
+    <xs:sequence>
+      <xs:element name="id">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="local"/>
+            <xs:enumeration value="test"/>
+            <xs:enumeration value="integrated"/>
+            <xs:enumeration value="prod"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element type="ns:propertiesType" name="properties" xmlns:ns="http://maven.apache.org/POM/4.0.0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="profilesType">
+    <xs:sequence>
+      <xs:element type="ns:profileType" name="profile" maxOccurs="unbounded" minOccurs="0" xmlns:ns="http://maven.apache.org/POM/4.0.0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="dependencyType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="groupId"/>
+      <xs:element type="xs:string" name="artifactId"/>
+      <xs:element type="xs:string" name="version" minOccurs="0"/>
+      <xs:element type="xs:string" name="type" minOccurs="0"/>
+      <xs:element name="scope" minOccurs="0">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="test"/>
+            <xs:enumeration value="runtime"/>
+            <xs:enumeration value="compile"/>
+            <xs:enumeration value="import"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element type="ns:exclusionsType" name="exclusions" minOccurs="0" xmlns:ns="http://maven.apache.org/POM/4.0.0">
+        <xs:annotation>
+          <xs:documentation>1.5的版本默认采用的连接池技术是jedis 2.0以上版本默认连接池是lettuce, 在这里采用jedis，所以需要排除lettuce的jar</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="exclusionType">
+    <xs:sequence>
+      <xs:element name="groupId">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="redis.clients"/>
+            <xs:enumeration value="io.lettuce"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="artifactId">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="jedis"/>
+            <xs:enumeration value="lettuce-core"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="exclusionsType">
+    <xs:sequence>
+      <xs:element type="ns:exclusionType" name="exclusion" maxOccurs="unbounded" minOccurs="0" xmlns:ns="http://maven.apache.org/POM/4.0.0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="dependenciesType">
+    <xs:sequence>
+      <xs:element type="ns:dependencyType" name="dependency" maxOccurs="unbounded" minOccurs="0" xmlns:ns="http://maven.apache.org/POM/4.0.0">
+        <xs:annotation>
+          <xs:documentation><![CDATA[Web场景启动器  MyBatis 启动器  开发者工具  MySQL  SpringBoot 的测试依赖  	<dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-test</artifactId>
+                <scope>test</scope>
+            </dependency>  德鲁伊连接池  commons-lang3工具包 $NO-MVN-MAN-VER$  swagger2 dependency 添加redis依赖  阿里短信 begin  <scope>system</scope>
+			<systemPath>${basedir}/src/main/lib/aliyun-java-sdk-core-3.3.1.jar</systemPath>  <scope>system</scope>
+			<systemPath>${basedir}/src/main/lib/aliyun-java-sdk-dysmsapi-1.0.0.jar</systemPath>  阿里短信end  https://mvnrepository.com/artifact/commons-collections/commons-collections  fastdfs  文件上传 begin  文件上传 end  RabbitMq begin  RabbitMq begin  https://mvnrepository.com/artifact/jdom/jdom  mongodb依赖 redisson https://mvnrepository.com/artifact/commons-discovery/commons-discovery  https://mvnrepository.com/artifact/wsdl4j/wsdl4j 主从配置依赖]]></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="dependencyManagementType">
+    <xs:sequence>
+      <xs:element type="ns:dependenciesType" name="dependencies" xmlns:ns="http://maven.apache.org/POM/4.0.0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="pluginType">
+    <xs:sequence>
+      <xs:element name="groupId">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="org.springframework.boot"/>
+            <xs:enumeration value="com.spotify"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="artifactId">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="spring-boot-maven-plugin"/>
+            <xs:enumeration value="docker-maven-plugin"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element type="ns:configurationType" name="configuration" minOccurs="0" xmlns:ns="http://maven.apache.org/POM/4.0.0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="imageTagsType">
+    <xs:choice maxOccurs="unbounded" minOccurs="0">
+      <xs:element name="imageTag">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="integrated"/>
+            <xs:enumeration value="test"/>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+    </xs:choice>
+  </xs:complexType>
+  <xs:complexType name="resourceType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="targetPath"/>
+      <xs:element type="xs:string" name="directory"/>
+      <xs:element type="xs:string" name="include"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="resourcesType">
+    <xs:sequence>
+      <xs:element type="ns:resourceType" name="resource" xmlns:ns="http://maven.apache.org/POM/4.0.0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="configurationType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="forceTags"/>
+      <xs:element type="xs:string" name="serverId"/>
+      <xs:element type="xs:string" name="imageName"/>
+      <xs:element type="xs:string" name="baseImage">
+        <xs:annotation>
+          <xs:documentation>&lt;dockerDirectory>src/main/docker&lt;/dockerDirectory></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element type="xs:string" name="entryPoint"/>
+      <xs:element type="xs:string" name="retryPushCount">
+        <xs:annotation>
+          <xs:documentation>&lt;entryPoint>["java", "-javaagent:/usr/local/agent/skywalking-agent.jar","-Dskywalking.agent.service_name=mall","-Dskywalking.collector.backend_service=10.38.128.204:11800", "-jar","/${project.build.finalName}.jar"]&lt;/entryPoint></xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element type="xs:string" name="noCache"/>
+      <xs:element type="ns:imageTagsType" name="imageTags" xmlns:ns="http://maven.apache.org/POM/4.0.0"/>
+      <xs:element type="ns:resourcesType" name="resources" xmlns:ns="http://maven.apache.org/POM/4.0.0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="pluginsType">
+    <xs:sequence>
+      <xs:element type="ns:pluginType" name="plugin" maxOccurs="unbounded" minOccurs="0" xmlns:ns="http://maven.apache.org/POM/4.0.0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="buildType">
+    <xs:sequence>
+      <xs:element type="ns:pluginsType" name="plugins" xmlns:ns="http://maven.apache.org/POM/4.0.0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="projectType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="modelVersion"/>
+      <xs:element type="xs:string" name="groupId"/>
+      <xs:element type="xs:string" name="artifactId"/>
+      <xs:element type="xs:string" name="name"/>
+      <xs:element type="xs:string" name="description"/>
+      <xs:element type="xs:string" name="version"/>
+      <xs:element type="ns:parentType" name="parent" xmlns:ns="http://maven.apache.org/POM/4.0.0"/>
+      <xs:element type="ns:profilesType" name="profiles" xmlns:ns="http://maven.apache.org/POM/4.0.0"/>
+      <xs:element type="ns:propertiesType" name="properties" xmlns:ns="http://maven.apache.org/POM/4.0.0"/>
+      <xs:element type="ns:dependenciesType" name="dependencies" xmlns:ns="http://maven.apache.org/POM/4.0.0"/>
+      <xs:element type="ns:dependencyManagementType" name="dependencyManagement" xmlns:ns="http://maven.apache.org/POM/4.0.0"/>
+      <xs:element type="ns:buildType" name="build" xmlns:ns="http://maven.apache.org/POM/4.0.0"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

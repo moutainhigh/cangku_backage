@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.platform.mall.mapper.GroupOrderItemMapper">
+
+
+    <select id="getGroupOrderItemByGoodsId" resultType="cn.enn.wise.platform.mall.bean.bo.GroupOrderItemBo">
+        select
+          goir.id,
+          goir.group_order_id,
+          goir.group_order_code,
+          goir.user_id,
+          goir.join_time,
+          goir.order_id,
+          goir.is_header,
+          goir.status,
+          goir.refund_code,
+          goir.goods_extend_id,
+          goir.goods_count,
+          goir.create_time,
+          goir.update_time,
+          goir.refund_time,
+          goir.group_order_type
+        from group_order go INNER JOIN group_order_item goir ON goir.group_order_id = go.id and goir.status = 1
+        where go. goods_id = #{goodsId} and go.available_time >SYSDATE() and go.status = 2 ORDER BY goir.group_order_id
+    </select>
+    <select id="getGroupOrderItemByGroupOrderId" resultType="cn.enn.wise.platform.mall.bean.bo.GroupOrderItemBo">
+        select
+          goir.id,
+          goir.group_order_id,
+          goir.group_order_code,
+          goir.user_id,
+          goir.join_time,
+          goir.order_id,
+          goir.is_header,
+          goir.status,
+          goir.refund_code,
+          goir.goods_extend_id,
+          goir.goods_count,
+          goir.create_time,
+          goir.update_time,
+          goir.refund_time,
+          goir.group_order_type
+        from group_order_item goir
+        where goir.group_order_id = #{groupOrderId} and status=1
+    </select>
+
+    <select id="getGroupOrderItemByGroupPromotionIdAndUserId" resultType="cn.enn.wise.platform.mall.bean.bo.GroupOrderItemBo">
+        select
+          goir.id,
+          goir.group_order_id,
+          goir.group_order_code,
+          goir.user_id,
+          goir.join_time,
+          goir.order_id,
+          goir.is_header,
+          goir.status,
+          goir.refund_code,
+          goir.goods_extend_id,
+          goir.goods_count,
+          goir.create_time,
+          goir.update_time,
+          goir.refund_time,
+          goir.group_order_type
+        from group_order_item goir ,group_order go
+        where go.group_promotion_id=#{groupPromotionId} and goir.group_order_id=go.id and goir.user_id=#{userId} and go.status=2
+    </select>
+
+    <select id="getGroupOrderItemByGroupOrderIdAndUserId" resultType="cn.enn.wise.platform.mall.bean.bo.GroupOrderItemBo">
+        select
+          goir.id,
+          goir.group_order_id,
+          goir.group_order_code,
+          goir.user_id,
+          goir.join_time,
+          goir.order_id,
+          goir.is_header,
+          goir.status,
+          goir.refund_code,
+          goir.goods_extend_id,
+          goir.goods_count,
+          goir.create_time,
+          goir.update_time,
+          goir.refund_time,
+          goir.group_order_type
+        from group_order_item goir,group_order go
+        where  goir.group_order_id=#{groupOrderId} and goir.user_id=#{userId} and go.status=2 and goir.status=1
+    </select>
+
+    <select id="getGroupOrderSizeByOrderIdAndUserId" resultType="java.util.Map">
+        SELECT
+            go.id,
+            count(goir.id) orderSize
+        FROM
+            group_order go
+        INNER JOIN group_order_item goi ON go.id = goi.group_order_id
+        AND goi.order_id = #{orderId}
+        AND goi.user_id = #{userId}
+        LEFT JOIN group_order_item goir ON go.id = goir.group_order_id  and goir.`status` = 1
+    </select>
+    <select id="getCountInsertOrderByGoodsAndUserId" resultType="java.lang.Long">
+        SELECT
+            COUNT(goi.id)
+        FROM
+            group_order_item goi
+        INNER JOIN group_order go ON go.id = goi.group_order_id
+        WHERE
+            go.group_promotion_id = #{groupPromotionId}
+            AND go.goods_id = #{goodId}
+            AND goi.user_id = #{userId}
+            and  go.status in(1,2,3)
+    </select>
+
+
+    <update id="updateStatusByOrderIdAndUserId">
+        UPDATE group_order_item SET status = 2,update_time=NOW()
+        WHERE order_id = #{orderId} and user_id = #{userId}
+    </update>
+
+    <select id="getOrderNotInItem" resultType="cn.enn.wise.platform.mall.bean.bo.Order">
+        SELECT
+        *
+        FROM
+        orders o
+        WHERE
+        o.group_order_id is not NULL AND
+        o.order_type = 3
+        AND o.state = 2
+        AND o.pay_time&lt;(SYSDATE() - 3 / (24 * 60))
+        AND NOT EXISTS (
+        SELECT
+        goi.order_id
+        FROM
+        group_order_item goi
+        WHERE
+        goi.order_id = o.id
+        )
+    </select>
+</mapper>

@@ -1,0 +1,38 @@
+server:
+  port: 9030
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: order-service
+  profiles:
+    active: test
+  jackson:
+    date-format: cn.enn.wise.uncs.base.config.SSOPDateFormat
+mybatis:
+  table:
+    auto: update
+  database:
+    type: mysql
+  model:
+    pack: cn.enn.wise.ssop.service.order.model
+  mapper-locations: classpath*:mapper/*Mapper.xml,classpath*:com/gitee/sunchenbin/mybatis/actable/mapping/*/*.xml
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  mapper-locations: classpath*:mapper/*Mapper.xml,classpath*:com/gitee/sunchenbin/mybatis/actable/mapping/*/*.xml
+  global-config:
+    db-config:
+      logic-delete-field: isdelete  #全局逻辑删除字段值 3.3.0开始支持，详情看下面。
+      logic-delete-value: 2 # 逻辑已删除值(默认为 2)
+      logic-not-delete-value: 1 # 逻辑未删除值(默认为 1)
+log:
+  file: order.log
+  path: ./logs
+queueconfig:
+  prefix: queue
+
+# 设置ribbon超时时间
+ribbon:
+  ReadTimeout: 5000
+  ConnectTimeout: 5000

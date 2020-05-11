@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.ssop.service.order.mapper.PcComboMapper">
+
+    <resultMap id="orderGoodsResultMap" type="cn.enn.wise.ssop.service.order.model.OrderGoods">
+        <id column="id" property="id"/>
+        <result column="order_id" property="orderId"/>
+        <result column="order_no" property="orderNo"/>
+        <result column="goods_type" property="goodsType"/>
+        <result column="goods_id" property="goodsId"/>
+        <result column="goods_name" property="goodsName"/>
+        <result column="goods_price" property="goodsPrice"/>
+        <result column="sku_id" property="skuId"/>
+        <result column="sku_name" property="skuName"/>
+        <result column="amount" property="amount"/>
+        <result column="should_pay_price" property="shouldPayPrice"/>
+        <result column="decrease_price" property="decreasePrice"/>
+        <result column="refund_price" property="refundPrice"/>
+        <result column="pay_status" property="payStatus"/>
+        <result column="transaction_status" property="transactionStatus"/>
+        <result column="system_status" property="systemStatus"/>
+        <result column="refund_status" property="refundStatus"/>
+        <result column="order_status" property="orderStatus"/>
+        <result column="extra_information" property="extraInformation"/>
+        <result column="parent_order_id" property="parentOrderId"/>
+    </resultMap>
+
+
+
+    <select id="searchPcComboList" parameterType="cn.enn.wise.ssop.api.order.dto.request.PcOrderGoodsParam" resultType="cn.enn.wise.ssop.api.order.dto.response.OrderGoodsListDTO">
+        SELECT
+        order_goods.order_no orderNo,
+        order_goods.order_id orderId,
+        order_goods.update_time updateTime,
+        goods_name,
+        goods_price,
+        orders.create_time,
+        order_relate_people.phone,
+        order_relate_people.customer_name customerName,
+        order_relate_people.certificate_no,
+        amount,
+        order_type,
+        three_order_no,
+        orders.order_source orderSource,
+        orders.order_source_name orderSourceName,
+        orders.should_pay_price shouldPayPrice,
+        orders.refund_price refundPrice,
+        orders.decrease_price decreasePrice,
+        orders.actual_pay_price actualPayPrice,
+        order_relate_people.extra_information,
+        orders.order_status orderStatus,
+        orders.transaction_status transactionStatus,
+        orders.pay_status payStatus
+        FROM
+        `order_goods`
+        LEFT JOIN order_relate_people ON order_goods.order_id = order_relate_people.order_id
+        LEFT JOIN orders ON order_goods.parent_order_id = orders.order_id
+        WHERE
+        1 =1
+        <if test="isMaster==1">
+            and order_goods.order_id = order_goods.parent_order_id
+        </if>
+        <if test="customerName!=null and customerName!='' ">
+            and order_relate_people.customer_name = #{customerName,jdbcType=VARCHAR}
+        </if>
+        <if test="goodsName!=null and goodsName!='' ">
+            and order_goods.goods_name = #{goodsName,jdbcType=VARCHAR}
+        </if>
+        <if test="orderSource!=null and orderSource!=0">
+            and orders.order_source = #{orderSource}
+        </if>
+        <if test="payStatus!=null and payStatus!=0">
+            and order_goods.pay_status = #{payStatus}
+        </if>
+        <if test="orderNo!=null and orderNo!='' ">
+            and order_goods.order_no = #{orderNo,jdbcType=VARCHAR}
+        </if>
+        <if test="phone!=null and phone!='' ">
+            and order_relate_people.phone = #{phone,jdbcType=VARCHAR}
+        </if>
+        <if test="transactionStatus!=null and transactionStatus!=0">
+            and order_goods.transaction_status = #{transactionStatus}
+        </if>
+        <if test="channelName!=null and channelName!='' ">
+            and orders.channel_name = #{channelName,jdbcType=VARCHAR}
+        </if>
+        <if test="startTime!=null and startTime!='' ">
+            and order_goods.create_time <![CDATA[ >=]]> #{startTime,jdbcType=VARCHAR}
+        </if>
+        <if test="endTime!=null and endTime!='' ">
+            and order_goods.create_time <![CDATA[ <=]]> #{endTime,jdbcType=VARCHAR}
+        </if>
+        <if test="checkStartTime!=null and checkStartTime!='' ">
+            and JSON_EXTRACT(order_relate_people.extra_information,'$.startTime') <![CDATA[ >=]]> #{checkStartTime,jdbcType=VARCHAR}
+        </if>
+        <if test="checkEndTime!=null and checkEndTime!='' ">
+            and JSON_EXTRACT(order_relate_people.extra_information,'$.startTime') <![CDATA[ <=]]> #{checkEndTime,jdbcType=VARCHAR}
+        </if>
+        <if test="orderStatus!=null and orderStatus!=0">
+            and order_goods.order_status = #{orderStatus}
+        </if>
+        <if test="orderCategory!=null and orderCategory!=0">
+            and order_goods.goods_type = #{orderCategory}
+        </if>
+        <if test="scenicName!=null and scenicName!=''">
+            and JSON_EXTRACT(order_goods.extra_information,'$.scenicName') = #{scenicName}
+        </if>
+        <if test=" certificateNo!=null and certificateNo!='' ">
+            and order_relate_people.certificate_no = #{certificateNo}
+        </if>
+        <if test="search!=null and search!='' ">
+            and (
+            order_relate_people.phone = #{search,jdbcType=VARCHAR} or
+            order_relate_people.customer_name = #{search,jdbcType=VARCHAR} or
+            order_goods.order_no = #{search,jdbcType=VARCHAR}
+            )
+        </if>
+        limit #{pageSize},#{pageNo}
+    </select>
+
+
+    <select id="getPcComboListByOrderId" parameterType="java.lang.Long" resultType="cn.enn.wise.ssop.service.order.model.OrderGoods">
+        SELECT * FROM `order_goods` where parent_order_id =
+        (SELECT parent_order_id FROM `order_goods` where order_id = #{orderId}
+          limit 1);
+    </select>
+
+
+
+    <select id="searchOrderCount" parameterType="cn.enn.wise.ssop.api.order.dto.request.PcOrderGoodsParam" resultType="java.lang.Integer">
+        SELECT
+        count( orders.order_id )
+        FROM
+        `order_goods`
+        LEFT JOIN order_relate_people ON order_goods.order_id = order_relate_people.order_id
+        LEFT JOIN orders ON order_goods.parent_order_id = orders.order_id
+        WHERE
+        1 =1
+        <if test="goodsName!=null and goodsName!='' ">
+            and order_goods.goods_name = #{goodsName,jdbcType=VARCHAR}
+        </if>
+        <if test="customerName!=null and customerName!='' ">
+            and order_relate_people.customer_name = #{customerName,jdbcType=VARCHAR}
+        </if>
+        <if test="orderSource!=null and orderSource!=0">
+            and orders.order_source = #{orderSource}
+        </if>
+        <if test="payStatus!=null and payStatus!=0">
+            and order_goods.pay_status = #{payStatus}
+        </if>
+        <if test="orderNo!=null and orderNo!='' ">
+            and order_goods.order_no = #{orderNo,jdbcType=VARCHAR}
+        </if>
+        <if test="phone!=null and phone!='' ">
+            and order_relate_people.phone = #{phone,jdbcType=VARCHAR}
+        </if>
+        <if test="transactionStatus!=null and transactionStatus!=0">
+            and order_goods.transaction_status = #{transactionStatus}
+        </if>
+        <if test="scenicName!=null and scenicName!=''">
+            and JSON_EXTRACT(order_relate_people.extra_information,'$.scenicName') = #{scenicName}
+        </if>
+        <if test="checkStartTime!=null and checkStartTime!='' ">
+            and JSON_EXTRACT(order_relate_people.extra_information,'$.startTime') <![CDATA[ >=]]> #{checkStartTime,jdbcType=VARCHAR}
+        </if>
+        <if test="checkEndTime!=null and checkEndTime!='' ">
+            and JSON_EXTRACT(order_relate_people.extra_information,'$.startTime') <![CDATA[ <=]]> #{checkEndTime,jdbcType=VARCHAR}
+        </if>
+        <if test="channelName!=null and channelName!='' ">
+            and orders.channel_name = #{channelName,jdbcType=VARCHAR}
+        </if>
+        <if test="startTime!=null and startTime!='' ">
+            and order_goods.create_time <![CDATA[ >=]]> #{startTime,jdbcType=VARCHAR}
+        </if>
+        <if test="endTime!=null and endTime!='' ">
+            and order_goods.create_time <![CDATA[ <=]]> #{endTime,jdbcType=VARCHAR}
+        </if>
+        <if test="orderStatus!=null and orderStatus!=0">
+            and order_goods.order_status = #{orderStatus}
+        </if>
+        <if test="orderCategory!=null and orderCategory!=0">
+            and order_goods.goods_type = #{orderCategory}
+        </if>
+        <if test=" certificateNo!=null and certificateNo!='' ">
+            and order_relate_people.certificate_no = #{certificateNo}
+        </if>
+        <if test="search!=null and search!='' ">
+            and (
+            order_relate_people.phone = #{search,jdbcType=VARCHAR} or
+            order_relate_people.customer_name = #{search,jdbcType=VARCHAR} or
+            order_goods.order_no = #{search,jdbcType=VARCHAR}
+            )
+        </if>
+    </select>
+
+
+</mapper>

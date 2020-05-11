@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.ssop.service.cms.mapper.ContentMapper">
+
+    <select id="selectContentListByTextAndTypeId"
+            resultType="cn.enn.wise.ssop.api.cms.dto.response.ContentListDTO">
+        select *
+        from (SELECT id,CONCAT('GL-',LPAD(id,5,'0')) as code, title, '攻略' AS typeName,'2' AS typeId, tags, update_time FROM strategy where isdelete = 1 and title like CONCAT('%',#{searchText},'%')
+              union all
+              SELECT id,CONCAT('GG-',LPAD(id,5,'0')) as code, content, '公告' AS typeName,'1' AS typeId, '' as tags, update_time FROM announcement where isdelete = 1 and content like CONCAT('%',#{searchText},'%')
+              union all
+              SELECT id,CONCAT('ZS-',LPAD(id,5,'0')) as code, title, '知识' AS typeName,'3' AS typeId, '' as tags, update_time FROM knowledge where isdelete = 1 and title like CONCAT('%',#{searchText},'%')
+        ) as data
+        <if test="typeId>0">
+            where typeId=#{typeId}
+        </if>
+
+    </select>
+
+</mapper>

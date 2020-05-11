@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.enn.wise.platform.mall.mapper.AwardMapper">
+
+    <select id="judgeCouponUsable" resultType="Map">
+    SELECT
+        gcr.goods_coupon_id,
+        gcr.promotion_id,
+        pag.goods_id
+    FROM
+        goods_coupon_rule gcr
+    LEFT JOIN promotion_and_goods pag ON gcr.promotion_id = pag.promotion_id
+		LEFT JOIN goods_coupon_promotion gcp on gcr.promotion_id = gcp.id
+    where  gcp.`status` =2 and gcr.goods_coupon_id=#{couponId} and pag.goods_id = #{goodsId}
+    </select>
+
+
+    <select id="judgePromotionUsable" resultType="cn.enn.wise.platform.mall.bean.bo.GoodsCouponRuleBo">
+        SELECT
+        gcr.promotion_id,
+        gcr.goods_coupon_id
+    FROM
+        goods_coupon_rule gcr
+    LEFT JOIN goods_coupon_promotion gcp on gcr.promotion_id = gcp.id
+    where gcp.`status` =2 and gcr.goods_coupon_id =#{couponId}
+
+    </select>
+
+
+</mapper>

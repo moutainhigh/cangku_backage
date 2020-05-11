@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.enn.wise.platform.mall.mapper.PromotionAndGoodsMapper">
+
+
+
+    <select id="getPromotionListByPromotionId" resultType="cn.enn.wise.platform.mall.bean.bo.autotable.PromotionAndGoods">
+
+
+        select id,promotion_id,goods_id
+        from promotion_and_goods
+        where promotion_id in
+        <foreach collection="list" item="id" index="index"
+                 open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+</mapper>

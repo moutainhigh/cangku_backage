@@ -1,0 +1,763 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.enn.wise.platform.mall.mapper.OrderDao">
+
+    <select id="findBystate" resultType="cn.enn.wise.platform.mall.bean.bo.Order">
+        select id,order_code orderCode,ticket_order_code ticketOrderCode from orders where order_type = #{orderType} and state = #{state}
+    </select>
+
+    <select id="findAllOrderList" resultType="cn.enn.wise.platform.mall.bean.bo.Order">
+        select o.id, o.order_code orderCode, o.goods_name goodsName, o.goods_price goodsPrice, o.state,o.reason,o.ticket_order_code,
+        o.update_time as updateTime, o.amount, o.pay_type payType, left(enter_time,10) enterTime, o.id_number idNumber,
+        o.name,o.create_time as createTime, o.sigle_price siglePrice, o.is_distribute_order isDistributeOrder,
+        o.order_source orderSource, o.pay_status payStatus, o.actual_pay actualPay,o.coupon_price couponPrice,
+        o.should_pay,phone,o.user_wechat_name,ge.timespan
+        timeSpan,o.snapshot,o.offline_status,o.offline_user,o.order_type,o.bat_code,o.pay_type,o.user_of_coupon_id couponNo
+        from orders o LEFT JOIN goods_extend ge on o.goods_id =ge.id
+        where 1=1 and (o.offline_status != 3 or o.offline_status is null)
+        and o.order_type !=5
+        <if test="orderBean.id != null ">
+            AND
+            o.id=#{orderBean.id}
+        </if>
+
+        <if test="orderBean.phone != null and orderBean.phone !='' ">
+            AND
+            o.phone LIKE '%${orderBean.phone}%'
+        </if>
+
+        <if test="orderBean.goodsName != null and orderBean.goodsName !='' ">
+            AND
+            o.goods_name LIKE '%${orderBean.goodsName}%'
+        </if>
+
+        <if test="orderBean.orderCode != null and orderBean.orderCode !='' ">
+            AND
+            o.order_code LIKE '%${orderBean.orderCode}%'
+        </if>
+
+        <if test="orderBean.startTimeSpan !='' and orderBean.endTimeSpan !='' and orderBean.startTimeSpan !=null and orderBean.endTimeSpan !=null ">
+            AND
+            (ge.timespan BETWEEN #{orderBean.startTimeSpan} and #{orderBean.endTimeSpan})
+        </if>
+
+        <if test="orderBean.timeSpan != null and orderBean.timeSpan !='' ">
+            AND
+            CONCAT(LEFT (o.enter_time, 10)," ",ge.timespan) LIKE concat(concat('%',#{orderBean.timeSpan}),'%')
+        </if>
+
+        <if test="orderBean.state != null">
+            AND
+            o.state=#{orderBean.state}
+        </if>
+
+        <if test="orderBean.states != null">
+            AND o.state in
+            <foreach collection="orderBean.states" item="id" index="index"
+                     open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+
+        <if test="orderBean.payStatus != null">
+            AND
+            o.pay_status=#{orderBean.payStatus}
+        </if>
+
+        <if test="orderBean.startTime != null and orderBean.startTime !='' ">
+            AND
+            o.create_time &gt;= #{orderBean.startTime}
+        </if>
+        <if test="orderBean.endTime != null and orderBean.endTime !='' ">
+            AND
+            o.create_time &lt;= #{orderBean.endTime}
+        </if>
+
+        <if test="orderBean.isDistributeOrder != null">
+            AND
+            o.is_distribute_order=#{orderBean.isDistributeOrder}
+        </if>
+
+        <if test="orderBean.couponNo != null and orderBean.couponNo != ''">
+            AND
+            o.user_of_coupon_id = #{orderBean.couponNo}
+        </if>
+        order by o.create_time desc
+    </select>
+
+
+    <select id="findAllBoatOrderList" resultType="cn.enn.wise.platform.mall.bean.vo.BoatOrderVo">
+        select o.id,o.order_code, o.goods_name, o.goods_price,o.phone, o.state orderSts,o.create_time as
+        createTime,o.expired_time,o.promotion_id,o.goods_id,o.coupon_price,o.user_of_coupon_id,o.should_pay,o.ticket_order_code,
+        o.name,o.order_type,o.pay_time,o.amount,o.sigle_price,o.group_order_id,o.comm_sts,o.project_id,o.delete_status,
+        o.pay_status,o.qr_code,o.proof,concat_ws(" ",DATE_FORMAT(o.enter_time,"%Y-%m-%d"),ge.timespan) as
+        timespan,DATE_FORMAT(o.enter_time, "%Y-%m-%d")AS timespans,gp.name projectName,ge.goods_id goodId,ge.line_date,ot.id_card,ot.ship_ticket_status,
+        ge.line_from,ge.line_to,ge.cabin_name,ge.nick_name boatName,ge.start_time boatStartTime,ge.end_time boatEndTime,ge.ship_line_info
+        from orders o
+        LEFT JOIN order_ticket ot on o.order_code = ot.ticket_code
+        LEFT JOIN goods_extend ge on o.goods_id =ge.id
+        LEFT JOIN goods_project gp ON o.project_id = gp.id
+      where 1=1 and o.order_type=5 and (o.offline_status != 3 or o.offline_status is null)
+
+        <if test="boatPcOrderBean.orderCode != '' ">
+            AND
+            o.order_code LIKE '%${boatPcOrderBean.orderCode}%'
+        </if>
+
+        <if test="boatPcOrderBean.ticketOrderCode != '' ">
+            AND
+            o.ticket_order_code LIKE '%${boatPcOrderBean.ticketOrderCode}%'
+        </if>
+
+        <if test="boatPcOrderBean.phone !='' ">
+            AND
+            o.phone LIKE '%${boatPcOrderBean.phone}%'
+        </if>
+
+        <if test="boatPcOrderBean.name !='' ">
+            AND
+            o.name LIKE '%${boatPcOrderBean.name}%'
+        </if>
+
+        <if test="boatPcOrderBean.orderSts !=null ">
+            AND
+            o.state = #{boatPcOrderBean.orderSts}
+        </if>
+
+        <if test="boatPcOrderBean.boatSts !=null ">
+            AND
+            ot.ship_ticket_status = #{boatPcOrderBean.boatSts}
+        </if>
+
+        <if test="boatPcOrderBean.boatName !='' ">
+            AND
+            ge.nick_name LIKE '%${boatPcOrderBean.boatName}%'
+        </if>
+
+        <if test="boatPcOrderBean.idCard !='' ">
+            AND
+            ot.id_card LIKE '%${boatPcOrderBean.idCard}%'
+        </if>
+
+        <if test="boatPcOrderBean.startTime !='' and boatPcOrderBean.endTime !=''">
+            AND
+            (o.create_time BETWEEN #{boatPcOrderBean.startTime} and #{boatPcOrderBean.endTime})
+        </if>
+        GROUP BY o.order_code
+        order by o.create_time desc
+    </select>
+
+
+    <select id="findAppAllNoUseOrder" resultType="cn.enn.wise.platform.mall.bean.vo.AppOrdersVo">
+        select sum(o.amount * o.max_number_of_users) AS peopleNumBer from orders o where 1=1 and o.pay_status !=1 and
+        o.state =2
+        <if test="appOrderBean.searchParameter != null and appOrderBean.searchParameter !='' ">
+            AND
+            (o.name LIKE '%${appOrderBean.searchParameter}%' OR o.order_code LIKE '%${appOrderBean.searchParameter}%' OR
+            o.phone LIKE '%${appOrderBean.searchParameter}%' )
+        </if>
+        <if test="appOrderBean.projectId != null">
+            AND
+            o.project_id=#{appOrderBean.projectId}
+        </if>
+    </select>
+
+    <select id="findAppAllOrderList" resultType="cn.enn.wise.platform.mall.bean.vo.AppOrderVo">
+        select o.order_code, o.goods_name,o.order_type, o.goods_price, o.goods_price goodsPriceIOS,
+        o.state,o.create_time as createTime,o.should_pay as shouldPay,
+        o.name,o.phone,ge.timespan,o.snapshot,o.is_distribute_order from orders o LEFT JOIN goods_extend ge on
+        o.goods_id =ge.id
+        WHERE 1=1 and o.pay_status !=1 and o.order_type !=2 and o.order_type !=5
+        <if test="appOrderBean.searchParameter != null and appOrderBean.searchParameter !='' ">
+            AND
+            (o.name LIKE '%${appOrderBean.searchParameter}%' OR o.order_code LIKE '%${appOrderBean.searchParameter}%' OR
+            o.phone LIKE '%${appOrderBean.searchParameter}%' )
+        </if>
+
+        <if test="appOrderBean.state != null and appOrderBean.state !='' ">
+            AND
+            o.state=#{appOrderBean.state}
+        </if>
+        <if test="appOrderBean.timeSpan != null and appOrderBean.timeSpan !='' ">
+            AND
+            ge.timespan=#{appOrderBean.timeSpan}
+        </if>
+        <if test="appOrderBean.states != null ">
+            AND o.state in
+            <foreach collection="appOrderBean.states" item="id" index="index"
+                     open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+        <if test="appOrderBean.times != null">
+            AND
+            left(enter_time,10) = DATE_SUB(curdate(),INTERVAL -#{appOrderBean.times} DAY)
+        </if>
+        <if test="appOrderBean.projectId != null">
+            AND
+            o.project_id=#{appOrderBean.projectId}
+        </if>
+        order by o.create_time desc
+        limit #{appOrderBean.offset},#{appOrderBean.limit}
+    </select>
+
+
+    <select id="findOrderInfo" resultType="cn.enn.wise.platform.mall.bean.bo.Order">
+        select o.id, o.order_code orderCode, o.goods_name goodsName, o.goods_Id goodsId, o.goods_price
+        goodsPrice,o.goods_price goodsPriceIOS,o.state,o.distributor_id,o.reason,ifnull(
+        json_extract(o.snapshot,'$.userRole'),'') userRole,o.user_of_coupon_id userOfCouponId,o.pay_time,
+        o.update_time as updateTime, o.amount, o.pay_type payType, left(enter_time,10) enterTime, o.id_number
+        idNumber,o.bat_code batCode,concat_ws(" ",DATE_FORMAT(o.enter_time,"%Y-%m-%d"),ge.timespan) as
+        experienceTime,DATE_FORMAT(o.enter_time, "%Y-%m-%d")AS experienceTimes,o.ticket_order_code,o.coupon_price couponPrices,
+        o.name,o.create_time as createTime, o.sigle_price siglePrice, o.sigle_price siglePriceIOS, o.is_distribute_order
+        isDistributeOrder, o.order_source orderSource, o.pay_status payStatus, o.actual_pay actualPay,ifnull(o.coupon_price,0) couponPrice,
+        o.should_pay,phone,o.user_wechat_name,o.comm_sts commSts,ge.timespan
+        timeSpan,o.snapshot,o.offline_status,o.offline_user,o.order_type,o.project_id,o.user_of_coupon_id couponNo from orders o LEFT JOIN
+        goods_extend ge on o.goods_id =ge.id where o.order_code IN
+        <foreach item="oderCode" collection="oderCode" open="(" separator=","
+                 close=")">
+            #{oderCode}
+        </foreach>
+
+    </select>
+
+    <select id="findGoodsId" resultType="cn.enn.wise.platform.mall.bean.bo.Order">
+        select goods_id goodsId  from goods_extend where id =#{goodsId}
+    </select>
+
+
+    <select id="findOrderTicket" resultType="cn.enn.wise.platform.mall.bean.bo.OrderTickets">
+        select id,snapshot,check_in_time,goods_id,goods_name,ticket_code,single_price,coupon_price,ticket_type,ticket_id_bbd,order_serial_bbd,ticket_serial_bbd,ticket_state_bbd,is_ticket_printed from order_ticket WHERE ticket_code IN
+        <foreach item="orderCode" collection="orderCode" open="(" separator=","
+                 close=")">
+            #{orderCode}
+        </foreach>
+    </select>
+
+    <select id="findOrderTicketByBBDTicketNum" resultType="cn.enn.wise.platform.mall.bean.bo.OrderTickets">
+        select id,snapshot,check_in_time,ticket_code,single_price,coupon_price,refund_ratio,ticket_id_bbd,order_serial_bbd,ticket_serial_bbd,ticket_state_bbd from order_ticket WHERE ticket_serial_bbd=#{ticketNum}
+    </select>
+
+    <select id="findOrderTicketsById" resultType="cn.enn.wise.platform.mall.bean.bo.OrderTickets">
+        select id,snapshot,check_in_time,ticket_code,single_price,coupon_price,refund_ratio,ticket_id_bbd,order_serial_bbd,ticket_serial_bbd from order_ticket WHERE id=#{id}
+    </select>
+
+    <select id="findCancelOrder" resultType="cn.enn.wise.platform.mall.bean.bo.Order">
+        SELECT DISTINCT
+        order_id AS id
+        FROM
+        orders o LEFT JOIN order_ticket ot on o.id = ot.order_id
+        WHERE
+        TIMESTAMPDIFF(MINUTE,ot.check_in_time,NOW()) >=40
+        and ot.status = 1 and o.state=3
+    </select>
+
+    <select id="findCancelWZDOrder" resultType="cn.enn.wise.platform.mall.bean.bo.Order">
+        SELECT DISTINCT
+        order_id AS id,
+        o.order_code orderCode
+        FROM
+        orders o LEFT JOIN order_ticket ot on o.id = ot.order_id
+        WHERE 1=1 AND
+         to_days(o.enter_time) = to_days(now())  and o.state=3
+    </select>
+
+    <update id="updateOrderState">
+        UPDATE orders SET `state` = 9,update_time=NOW()
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateOrderStateById">
+        UPDATE orders SET `state` =  #{state},update_time=NOW()
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateOrderPayStateById">
+        UPDATE orders SET `state` =  #{state},`pay_status` =  #{payState},update_time=NOW()
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateOrderStateByOrderCode">
+        UPDATE orders SET `state` =  #{state},update_time=NOW()
+        <if test="state.toString() =='11'.toString()">
+        ,pay_status='3'
+        </if>
+        WHERE order_code = #{orderCode}
+    </update>
+
+    <update id="refundByOrderId">
+        UPDATE orders SET `state` = 11,update_time=NOW(),actual_pay=0
+        WHERE order_code IN
+        <foreach item="oderCode" collection="oderCode" open="(" separator=","
+                 close=")">
+            #{oderCode}
+        </foreach>
+    </update>
+
+    <update id="cancelAppOrder">
+        UPDATE orders SET `state` = 3,update_time=NOW()
+        WHERE order_code = #{orderCode}
+    </update>
+
+    <update id="retreatAppOrder">
+        UPDATE orders SET `state` = 11,update_time=NOW(),actual_pay=0
+        WHERE order_code = #{orderCode}
+    </update>
+
+    <update id="retreatAppOrders">
+        UPDATE orders SET `state` = 11
+        WHERE order_code = #{orderCode}
+    </update>
+
+    <update id="updateOrderTicket">
+         UPDATE order_ticket
+        SET STATUS = '2',
+         update_time = NOW()
+        WHERE
+        order_id =#{id}
+    </update>
+
+    <update id="updateOrderTicketState">
+        UPDATE order_ticket
+        SET STATUS = '1',snapshot = #{snapshot},check_in_time=NOW()
+        WHERE
+        ticket_code =#{orderCode}
+    </update>
+
+
+    <select id="queryRefundOrder" resultType="cn.enn.wise.platform.mall.bean.bo.Order">
+    select o.id, o.order_code orderCode, o.goods_name goodsName, o.goods_price goodsPrice, o.state,
+    o.update_time as updateTime, o.amount, o.pay_type payType, left(enter_time,10) enterTime, o.id_number idNumber,
+    o.name,o.create_time as createTime, o.sigle_price siglePrice, o.is_distribute_order isDistributeOrder, o.order_source orderSource, o.pay_status payStatus, o.actual_pay actualPay,
+    o.should_pay,phone,o.user_wechat_name,o.bat_code,o.ticket_order_code from orders o where 1=1 and (o.state=5) and o.pay_status =2
+    </select>
+
+    <select id="queryTicketUnusedOrder" resultType="cn.enn.wise.platform.mall.bean.bo.Order">
+        <!-- pay_status:2,已支付；order_type:5,船票类型；state:2,待使用状态 -->
+        select o.id, o.order_code orderCode, o.goods_name goodsName, o.goods_price goodsPrice, o.state,
+        o.update_time as updateTime, o.amount, o.pay_type payType, left(enter_time,10) enterTime, o.id_number idNumber,
+        o.name,o.create_time as createTime, o.sigle_price siglePrice, o.is_distribute_order isDistributeOrder,
+        o.order_source orderSource, o.pay_status payStatus, o.actual_pay actualPay,
+        o.should_pay,phone,o.user_wechat_name,o.bat_code,o.ticket_order_code from orders o where 1=1 and (o.state=2) and
+        o.pay_status =2 and o.order_type=5
+    </select>
+
+    <select id="queryTicketUnusedBBDOrder" resultType="cn.enn.wise.platform.mall.bean.bo.Order">
+        <!-- pay_status:2,已支付；order_type:6,百邦达订单类型；state:2,待使用状态 -->
+        select o.id, o.order_code orderCode, o.goods_name goodsName, o.goods_price goodsPrice, o.state,
+        o.update_time as updateTime, o.amount, o.pay_type payType, left(enter_time,10) enterTime, o.id_number idNumber,
+        o.name,o.create_time as createTime, o.sigle_price siglePrice, o.is_distribute_order isDistributeOrder,
+        o.order_source orderSource, o.pay_status payStatus, o.actual_pay actualPay,
+        o.should_pay,phone,o.user_wechat_name,o.bat_code,o.ticket_order_code from orders o where 1=1 and (o.state=2) and
+        o.pay_status =2 and o.order_type=6
+    </select>
+
+    <select id="queryTicketPayedOrder" resultType="cn.enn.wise.platform.mall.bean.bo.Order">
+        <!-- pay_status:2,已支付；order_type:5,船票类型；state:2\9,待使用\体验完成状态 -->
+        select o.id, o.order_code orderCode, o.goods_name goodsName, o.goods_price goodsPrice, o.state,
+        o.update_time as updateTime, o.amount, o.pay_type payType, left(enter_time,10) enterTime, o.id_number idNumber,
+        o.name,o.create_time as createTime, o.sigle_price siglePrice, o.is_distribute_order isDistributeOrder, o.order_source orderSource, o.pay_status payStatus, o.actual_pay actualPay,
+        o.should_pay,phone,o.user_wechat_name,o.bat_code,o.ticket_order_code from orders o where 1=1 and (o.state=2 or o.state=9) and o.pay_status =2 and o.order_type=5
+    </select>
+
+    <update id="setOrderTicketStatus">
+        update order_ticket set ship_ticket_status=#{status} where ticket_id=#{ticketId}
+    </update>
+
+    <update id="setOrderTicketRefund">
+        <!-- ship_ticket_status:2,已取消；refund_sts:2,已退款； -->
+        update order_ticket set ship_ticket_status='2',refund_sts='2',
+        refund=#{refund},refund_ ratio=#{refundRatio}
+        where ticket_id=#{ticketId}
+    </update>
+
+
+    <update id="updateOrderPayStatus">
+        UPDATE orders
+        SET pay_status = '3',actual_pay = #{actualPay},update_time=NOW()
+        WHERE
+            bat_code =#{orderNum}
+    </update>
+
+    <select id="listReport" resultType="Map">
+
+        SET @t1=0;
+        SET @preAmount=0;
+        select
+        (
+        case
+        when (sum(os.amount)=@preAmount)=0 then (select @t1:=@t1+1)
+        when (sum(os.amount)=@preAmount)=1 then (select @t1)
+        else '' end
+        ) num,
+        ifnull( json_extract(os.snapshot,'$.userName'),'') userName,
+        ifnull( json_extract(os.snapshot,'$.phone'),'') phone,
+        '' carNum,
+        count(1) orderCount,
+        sum(os.amount) orderAmount,
+        group_concat(os.order_code order by os.id) orderCodes,
+        group_concat(os.sigle_price order by os.id) siglePrice,
+        group_concat(os.goods_price order by os.id) goodsPrice,
+        group_concat(ge.timespan order by os.id) orderTime,
+        group_concat(os.is_distribute_order order by os.id) isDistributeOrder,
+        group_concat(os.max_number_of_users order by os.id) userNum,
+        (select @preAmount:=sum(os.amount)),
+        group_concat(left(os.create_time,10) order by os.id) createTime
+        from orders os
+        inner join goods_extend ge on ge.id = os.goods_id
+        where os.is_distribute_order=1
+        <if test="startDate != null and startDate !='' ">
+            AND
+            os.create_time >= #{startDate}
+        </if>
+        <if test="endDate != null and endDate !='' ">
+            AND
+            os.create_time &lt;= #{endDate}
+        </if>
+        group by os.distributor_id
+        order by 6 desc;
+    </select>
+
+    <select id="findProductName" resultType="cn.enn.wise.platform.mall.bean.bo.GoodsProject">
+        select name from goods_project where id =#{projectId}
+    </select>
+
+    <select id="findDistributorPhone" resultType="cn.enn.wise.platform.mall.bean.bo.Order">
+        SELECT json_extract(snapshot,'$.phone') as phone FROM orders where is_distribute_order =1 and id =#{id}
+    </select>
+
+    <select id="queryByStaffIdAndProjectId" resultType="cn.enn.wise.platform.mall.bean.bo.GoodsProject">
+        SELECT * FROM goods_project where FIND_IN_SET(#{staffId},operation_staff) and id =#{projectId}
+    </select>
+
+    <select id="findGroupOrderItemByOrderId" resultType="cn.enn.wise.platform.mall.bean.bo.autotable.GroupOrderItem">
+        SELECT group_order_id ,group_order_code,user_id,order_id FROM group_order_item WHERE order_id=#{orderId}
+    </select>
+
+    <select id="findGroupOrderByGroupOrderId" resultType="cn.enn.wise.platform.mall.bean.bo.autotable.GroupOrder">
+        SELECT status,goods_id,group_promotion_id,end_time FROM group_order WHERE id = #{groupOrderId}
+    </select>
+
+    <select id="findOrderTicketIdByOrderCode" resultType="java.lang.Long">
+        SELECT id FROM order_ticket where ticket_code=#{orderCode}
+    </select>
+
+    <update id="updateOrderTicketBBD">
+        update order_ticket set ticket_serial_bbd=#{ticketSerial},order_serial_bbd=#{orderSerial},ticket_id_bbd=#{ticketId},ticket_state_bbd=#{ticketStatus},ticket_qr_code_bbd=#{qrCode} where id=#{id}
+    </update>
+
+    <update id="updateOrderTicketStateBBD">
+        update order_ticket set ticket_state_bbd=#{state}
+        <if test="state.toString()=='100'.toString()">
+            ,status='1',check_in_time=NOW()
+        </if>
+        where id=#{id}
+    </update>
+
+    <update id="updateOrderTicketSerialBBD">
+        update order_ticket set ticket_serial_bbd=#{ticketSerialBbd},ticket_qr_code_bbd=#{qrCode} where id=#{id}
+    </update>
+
+    <select id="findGroupOrderInfo" resultType="cn.enn.wise.platform.mall.bean.vo.GroupItemVo">
+        SELECT
+        go.id,
+        go.goods_num,
+        go.group_order_code,
+        go.`status`,
+        goi. STATUS AS state,
+        goi.order_id,
+        gr.period
+        FROM
+            group_order go
+        LEFT JOIN group_order_item goi ON go.group_order_code = goi.group_order_code
+        LEFT JOIN group_promotion gp ON go.group_promotion_id = gp.id
+        LEFT JOIN group_rule gr ON gp.rule_id = gr.id
+        WHERE
+            goi.order_id = #{id}
+    </select>
+
+
+    <select id="findH5AllOrderList" resultType="cn.enn.wise.platform.mall.bean.vo.H5OrderVo">
+        select o.id,o.order_code, o.goods_name, o.goods_price,o.phone, o.state,o.create_time as
+        createTime,o.expired_time,o.promotion_id,o.goods_id,o.coupon_price,o.user_of_coupon_id,o.should_pay,o.ticket_order_code,
+        o.name,o.order_type,o.pay_time,o.amount,o.sigle_price,o.group_order_id,o.comm_sts,o.project_id,o.delete_status,
+        o.pay_status,o.qr_code,o.proof,concat_ws(" ",DATE_FORMAT(o.enter_time,"%Y-%m-%d"),ge.timespan) as
+        timespan,DATE_FORMAT(o.enter_time, "%Y-%m-%d")AS timespans,gp.name projectName,ge.goods_id goodId,ge.line_date,
+        ge.line_from,ge.line_to,ge.cabin_name,ge.nick_name,ge.start_time boatStartTime,ge.end_time
+        boatEndTime,ge.ship_line_info,g.img AS picture
+        from orders o LEFT JOIN goods_extend ge on o.goods_id =ge.id
+        LEFT JOIN goods_project gp ON o.project_id = gp.id
+        LEFT JOIN goods g ON ge.goods_id = g.id
+        WHERE 1=1 and o.scenic_id=#{orderQueryBean.scenicId} and o.user_id =
+        #{orderQueryBean.userId}
+        <if test="orderQueryBean.orderSts != null and orderQueryBean.orderSts !='' ">
+            AND
+            o.state=#{orderQueryBean.orderSts}
+        </if>
+        <if test="orderQueryBean.commSts != null and orderQueryBean.commSts !='' ">
+            AND o.state = 9
+            AND
+            o.comm_sts=#{orderQueryBean.commSts}
+        </if>
+        <if test="orderQueryBean.paySts != null and orderQueryBean.paySts !='' ">
+            AND
+            o.pay_status=#{orderQueryBean.paySts}
+        </if>
+        order by o.create_time desc
+    </select>
+
+    <update id="deleteH5Order">
+        UPDATE orders
+        SET delete_status = '2'
+        WHERE
+            order_code =#{orderCode}
+    </update>
+
+    <update id="updateProdCommSts">
+        UPDATE orders
+        SET comm_sts = '2'
+        WHERE
+        order_code =#{orderCode}
+    </update>
+
+    <select id="findRefundOrderByOrderCode" resultType="cn.enn.wise.platform.mall.bean.bo.RefundApply">
+        select id,order_id,order_amount,user_id,return_money_sts from order_refund where order_id in
+        <foreach collection="orderCodeList" item="orderCodeList" index="index"
+                 open="(" close=")" separator=",">
+            #{orderCodeList}
+        </foreach>
+    </select>
+
+
+    <select id="findLaiU8OrderDetail" resultType="cn.enn.wise.platform.mall.bean.vo.OrderTicketVo">
+        SELECT
+        id,
+        ticket_code orderCode,
+        project_id,
+        project_name,
+        goods_id,
+        goods_name,
+        status,
+        project_place_id,
+        refund_sts,
+        single_price,
+        single_price singlePrices,
+        coupon_price,
+        ticket_user_name,
+        id_card,
+        phone,
+        ticket_type,
+        seat_number,
+        ship_ticket_status,
+        baby_info,ticket_id,refund,refund_ratio,
+        ticket_serial_bbd,
+        ticket_state_bbd,
+        ticket_qr_code_bbd
+        FROM
+        order_ticket WHERE ticket_serial_bbd = #{orderCode}
+    </select>
+
+    <select id="findComposeOrderInfo" resultType="cn.enn.wise.platform.mall.bean.vo.OrderTicketVo">
+        SELECT
+        id,
+        order_id,
+        ticket_code orderCode,
+        project_id,
+        project_name,
+        goods_id,
+        goods_name,
+        check_in_time,
+        status,
+        project_place_id,
+        refund_sts,
+        single_price,
+        single_price singlePrices,
+        coupon_price,
+        ticket_user_name,
+        id_card,
+        phone,
+        ticket_type,
+        seat_number,
+        ship_ticket_status,
+        baby_info,ticket_id,refund,refund_ratio,
+        ticket_serial_bbd,
+        ticket_state_bbd,
+        ticket_qr_code_bbd,
+        is_ticket_printed,
+        ticket_id_bbd,
+        order_serial_bbd
+        FROM
+        order_ticket WHERE ticket_code = #{orderCode} ORDER BY coupon_price ASC
+    </select>
+
+    <select id="findComposeOrderDetail" resultType="cn.enn.wise.platform.mall.bean.bo.Order">
+        select o.id, o.order_code orderCode, o.goods_name goodsName, o.goods_price goodsPrice, o.state,o.reason,o.ticket_order_code,
+        o.update_time as updateTime, o.amount, o.pay_type payType, left(enter_time,10) enterTime, o.id_number idNumber,
+        o.name,o.create_time as createTime, o.sigle_price siglePrice, o.is_distribute_order isDistributeOrder, o.order_source orderSource, o.pay_status payStatus, o.actual_pay actualPay,o.coupon_price,
+        o.should_pay,phone,o.user_wechat_name,ge.timespan timeSpan,concat_ws(" ",DATE_FORMAT(o.enter_time,"%Y-%m-%d"),ge.timespan) as experienceTime,o.snapshot,o.offline_status,o.offline_user,o.order_type,o.bat_code,o.pay_type
+        from orders o LEFT JOIN goods_extend ge on o.goods_id =ge.id
+        where 1=1 and order_code =#{orderCode}
+    </select>
+
+    <select id="findComposePftOrderDetail" resultType="cn.enn.wise.platform.mall.bean.bo.Order">
+        select o.id, o.order_code orderCode, o.goods_name goodsName, o.goods_price goodsPrice, o.state,o.reason,o.ticket_order_code,
+        o.update_time as updateTime, o.amount, o.pay_type payType, left(enter_time,10) enterTime, o.id_number idNumber,
+        o.name,o.create_time as createTime, o.sigle_price siglePrice, o.is_distribute_order isDistributeOrder, o.order_source orderSource, o.pay_status payStatus, o.actual_pay actualPay,o.coupon_price,
+        o.should_pay,phone,o.user_wechat_name,ge.timespan timeSpan,concat_ws(" ",DATE_FORMAT(o.enter_time,"%Y-%m-%d"),ge.timespan) as experienceTime,o.snapshot,o.offline_status,o.offline_user,o.order_type,o.bat_code,o.pay_type
+        from orders o LEFT JOIN goods_extend ge on o.goods_id =ge.id
+        where 1=1 and bat_code =#{wxCode}
+    </select>
+
+
+    <select id="findOrderInfo2" resultType="cn.enn.wise.platform.mall.bean.bo.Order">
+        select o.id, o.order_code orderCode, o.goods_name goodsName, o.goods_price goodsPrice, o.state,o.reason,
+        o.update_time as updateTime, o.amount, o.pay_type payType, left(enter_time,10) enterTime, o.id_number idNumber,
+        o.name,o.create_time as createTime, o.sigle_price siglePrice, o.is_distribute_order isDistributeOrder, o.order_source orderSource, o.pay_status payStatus, o.actual_pay actualPay,
+        o.should_pay,phone,o.user_wechat_name,ge.timespan timeSpan,o.snapshot,o.offline_status,o.offline_user,o.order_type,o.bat_code,o.pay_type
+        from orders o LEFT JOIN goods_extend ge on o.goods_id =ge.id
+        where 1=1 and o.id =#{id}
+    </select>
+
+
+    <update id="updateLaiU8OrderSts">
+        UPDATE order_ticket
+        SET refund_sts = '2',ship_ticket_status = '2'
+        WHERE
+        ticket_id =#{ticketId}
+    </update>
+
+
+    <update id="updateLaiU8PrintedSts">
+        UPDATE order_ticket
+        SET is_ticket_printed = #{orderPrintedParams.printedSts}
+        WHERE
+        ticket_serial_bbd = #{orderPrintedParams.orderCode}
+    </update>
+
+    <update id="updateOrderUseSts">
+        UPDATE orders
+        SET state = '3'
+        WHERE
+        order_code = #{orderCode}
+    </update>
+
+    <insert id="distributeBindUser" parameterType="cn.enn.wise.platform.mall.bean.bo.autotable.DistributeBindUser" useGeneratedKeys="true" keyProperty="id">
+        insert into distribute_bind_user(distribute_phone, user_id,bind_time)
+            values (#{distributeBindUserParam.distributePhone},#{distributeBindUserParam.userId},#{distributeBindUserParam.bindTime})
+    </insert>
+
+    <select id="findIsDisBindUser" resultType="cn.enn.wise.platform.mall.bean.bo.autotable.DistributeBindUser">
+        SELECT id,distribute_phone,user_id,bind_time from distribute_bind_user WHERE distribute_phone = #{phone} and user_id = #{userId}
+    </select>
+
+
+    <update id="updateOrderFailureRefund">
+        UPDATE orders
+        SET state = '5',pay_status='3',actual_pay=0
+        WHERE
+        order_code = #{orderCode}
+    </update>
+
+    <update id="updateBBDOrderRefundSts">
+        UPDATE order_ticket
+        SET ticket_state_bbd = '230'
+        WHERE
+        ticket_serial_bbd =#{ticketSerialBbd}
+    </update>
+
+
+    <update id="updateLaiU8OrderCheckSts">
+        UPDATE order_ticket
+        SET ship_ticket_status = '4',check_in_time=NOW(),status='1'
+        WHERE
+        ticket_id =#{ticketId}
+    </update>
+
+
+    <update id="updateOrderSts">
+        UPDATE orders
+        SET state = #{status}
+        WHERE
+        order_code =#{orderCode}
+    </update>
+
+
+    <update id="updateLaiU8OrderCheckSts">
+        UPDATE order_ticket
+        SET ship_ticket_status = '4',check_in_time=NOW(),status='1'
+        WHERE
+        ticket_id =#{ticketId}
+    </update>
+
+    <select id="findValidOrder" parameterType="java.lang.String" resultType="java.lang.Long">
+        select t.id from orders o LEFT JOIN order_ticket t on o.id = t.order_id
+        where o.bat_code = #{batCode}
+            and o.state in (2,3)
+            and o.pay_status = '2'
+            and (t.`status` is null or t.`status` != '1')
+        order by t.id asc ;
+    </select>
+
+    <update id="updateOrderTicketStatus">
+        UPDATE order_ticket
+        SET STATUS = '1', check_in_time=NOW()
+        WHERE
+        id = #{ids}
+    </update>
+
+    <update id="updateOrderTicketStatusByOrderId">
+        UPDATE order_ticket
+        SET STATUS = '1', check_in_time=NOW()
+        WHERE
+        order_id = #{orderId}
+    </update>
+
+    <update id="updateUserCouId">
+        UPDATE user_of_coupon
+        SET order_resource = #{state}, enter_time=NOW(), business_id =#{businessId},coupon_price=#{couPrice}
+        WHERE
+        id = #{id}
+    </update>
+
+    <select id="findOrderCodeByBatCode" resultType="java.lang.String">
+        select order_code from orders where bat_code = #{batCode} and state != '3'
+    </select>
+    <select id="listCou" resultType="cn.enn.wise.platform.mall.bean.vo.OrderCouVo">
+        select o.id,o.order_code as orderCode,o.goods_name as goodsName,o.sigle_price as siglePrice,o.amount,o.name,o.phone,
+        o.state,o.order_type as orderType,o.enter_time as enterTime
+         from orders o LEFT JOIN goods_extend ge on o.goods_Id=ge.id
+        LEFT JOIN goods g on ge.goods_Id=g.id
+         where g.business_id = #{appCouParam.businessId}
+        <if test="appCouParam.msg != null and appCouParam.msg != ''">
+            and (o.phone like '%${appCouParam.msg}%' or o.order_code like '%${appCouParam.msg}%' or o.name like '%${appCouParam.msg}%')
+        </if>
+        <if test="appCouParam.state != null and appCouParam.state != ''">
+            and o.state = #{appCouParam.state}
+        </if>
+        <if test="appCouParam.state == null or appCouParam.state == ''">
+            and o.state in (2,3)
+        </if>
+        order by o.id desc
+    </select>
+    <select id="getOrderCouInfo" resultType="cn.enn.wise.platform.mall.bean.vo.OrderCouInfo">
+        select o.id,o.order_code as orderCode,o.goods_name as goodsName,o.goods_price as goodsPrice,o.amount,o.name,o.phone,
+        o.state,o.order_type as orderType,o.enter_time as enterTime,o.coupon_price as couponPrice,o.pay_status as payType,
+        o.user_of_coupon_id as couId,gc.price as couPrice
+         from orders o left join user_of_coupon u on o.user_of_coupon_id=u.id
+         left join goods_coupon gc on u.goods_coupon_id=gc.id
+          where order_code = #{orderCode}
+    </select>
+    <select id="getOrderCouInfoList" resultType="cn.enn.wise.platform.mall.bean.vo.OrderCouInfo">
+        select o.id as id,o.order_code as orderCode,o.goods_name as goodsName,o.goods_price as goodsPrice,o.amount,o.name,o.phone,
+        o.state,o.order_type as orderType,o.enter_time as enterTime,o.coupon_price as couponPrice,o.pay_status as payType,
+        o.user_of_coupon_id as couId,gc.price as couPrice
+         from orders o left join user_of_coupon u on o.user_of_coupon_id=u.id
+         left join goods_coupon gc on u.goods_coupon_id=gc.id
+         LEFT JOIN goods_extend ge on o.goods_Id=ge.id
+        LEFT JOIN goods g on ge.goods_Id=g.id and o.state = 3
+         where g.business_id = #{businessId}
+         order by o.update_time desc
+    </select>
+
+
+</mapper>

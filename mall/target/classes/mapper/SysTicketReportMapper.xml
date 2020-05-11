@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.platform.mall.mapper.SysTicketReportMapper">
+    <select id="listTicketReport" resultType="Map">
+        SELECT id,
+            ifnull(report_date,0) reportDate,
+            ifnull(sell_out_count,0) sellOutCount,
+            ifnull(check_in_count,0) checkInCount,
+            ifnull(scans_count,0) scansCount,
+            ifnull(scans_percent,0) scansPercent,
+            ifnull(order_count,0) orderCount,
+            ifnull(order_percent,0) orderPercent,
+            ifnull(order_finish_count,0) orderFinishCount,
+            ifnull(order_finish_percent,0) orderFinishPercent
+        FROM sys_ticket_report
+        where report_date>=#{startDate} and report_date &lt;=#{endDate}
+        order by id desc;
+    </select>
+
+    <select id="listTicketReportTotal" resultType="Map">
+        SELECT id,
+            '合计' reportDate,
+            sum(ifnull(sell_out_count,0)) sellOutCount,
+            sum(ifnull(check_in_count,0)) checkInCount,
+            sum(ifnull(scans_count,0)) scansCount,
+            sum(ifnull(scans_count,0))/sum(ifnull(check_in_count,0)) scansPercent,
+            sum(ifnull(order_count,0)) orderCount,
+            sum(ifnull(order_count,0))/sum(ifnull(scans_count,0)) orderPercent,
+            sum(ifnull(order_finish_count,0)) orderFinishCount,
+            sum(ifnull(order_finish_count,0))/sum(ifnull(order_count,0)) orderFinishPercent
+        FROM sys_ticket_report
+        where report_date>=#{startDate} and report_date &lt;=#{endDate}
+    </select>
+</mapper>

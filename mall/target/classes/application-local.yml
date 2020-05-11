@@ -1,0 +1,175 @@
+server:
+  port: 9014
+  servlet:
+    context-path: /mall-v1
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:9001/eureka/
+#      defaultZone: http://dev-eureka:9004/eureka/
+#      defaultZone: http://test-eureka:9006/eureka/
+#      defaultZone: http://prod-master:9001/eureka/,http://prod-backup:9002/eureka/
+spring:
+  application:
+    name: wise.platform.mall
+  rabbitmq:
+    host: 10.38.128.83
+    port: 5672
+    username: dev
+    password: dev
+    publisher-confirms: true
+    publisher-returns: true
+    listener:
+      simple:
+        acknowledge-mode: manual
+        concurrency: 1
+        max-concurrency: 1
+        retry:
+          enabled: true
+    virtual-host: dev
+  redis:
+#    host: 127.0.0.1
+    host: 10.38.128.204
+    #    host: 10.38.128.81
+    #    host: 10.38.128.82
+    #    host: 10.38.128.83
+    port: 6379
+    timeout: 60s
+    database: 1
+    lettuce:
+      pool:
+        max-active: 200
+        max-idle: 20
+        min-idle: 5
+        max-wait: -1
+  datasource:
+    name: mysqlDataSource
+    type: com.alibaba.druid.pool.DruidDataSource
+    #druid相关配置
+    druid:
+      filters: stat
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://10.38.128.81:3306/mall?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&serverTimezone=CTT
+      username: guide
+      #username: root
+      password: guide
+      #password: root
+      #配置初始化大小/最小/最大
+      initial-size: 5
+      min-idle: 5
+      max-active: 500
+      #获取连接等待超时时间
+      max-wait: 60000
+      #间隔多久进行一次检测，检测需要关闭的空闲连接
+      time-between-eviction-runs-millis: 60000
+      #一个连接在池中最小生存的时间
+      min-evictable-idle-time-millis: 300000
+      validation-query: SELECT 'x'
+      test-while-idle: true
+      test-on-borrow: false
+      test-on-return: false
+      #打开PSCache，并指定每个连接上PSCache的大小。oracle设为true，mysql设为false。分库分表较多推荐设置为false
+      pool-prepared-statements: false
+      max-pool-prepared-statement-per-connection-size: 20
+      web-stat-filter.enabled: false
+  jackson:
+    time-zone: GMT+8
+  data:
+    elasticsearch:
+      cluster-name: elasticsearch
+      cluster-nodes: localhost:9300
+
+
+mybatis:
+  table:
+    auto: update
+  database:
+    type: mysql
+  model:
+    pack: cn.enn.wise.platform.mall.bean.bo.autotable
+  mapper-locations: classpath*:mapper/*Mapper.xml
+  type-aliases-package: cn.enn.wise.platform.mall.bean
+mybatis-plus:
+  mapper-locations: classpath*:mapper/*Mapper.xml
+logging:
+  file: info.log
+
+#自定义
+wx:
+  miniapp:
+    configs:
+    - appid: wx73466b979c886373
+      secret: 14bbded952712e3dab5818b1019c6f65
+      token:
+      aesKey:
+      msgDataFormat: JSON
+
+TOKEN_SERVICE_URL: http://tx.enn.cn/member-v1/login/getUserByToken
+
+companyId: 11
+# Http调用配置
+url:
+  #hostprefix: http://tx.enn.cn/
+  hostprefix: http://127.0.0.1:9013/
+  distributeBasePath: distribute-v1
+  mallBasePath: mall-v1
+  memberBasePath: member-v1
+  bscPath: basomtso-
+  dxgPath:
+  wzdPath: wzd-
+urlconfig:
+  urlConfigBeans:
+    - companyId: 5
+      urlMap:
+        CHECKUSER_SERVICE_URL:  ${url.hostprefix}${url.dxgPath}${url.distributeBasePath}/distributeorder/checkuser
+        SAVEDISTRIBUTEORDER_SERVICE_URL:  ${url.hostprefix}${url.dxgPath}${url.distributeBasePath}/app/distribute/order/save
+        STAFF_TOKEN_URL:  ${url.hostprefix}${url.memberBasePath}/wisePlatform/getUserByToken
+        CHECK_STRATEGY_URL: ${url.hostprefix}${url.dxgPath}${url.distributeBasePath}/app/distribute/checkstrategyitem
+        OPENID_SERVICE_URL: ${url.hostprefix}${url.memberBasePath}/wx/openid
+        scenic_service_url: ${url.hostprefix}/wzd-tourism-pandaro/encdata-pandaro/scenic/getCodes
+    - companyId: 10
+      urlMap:
+        CHECKUSER_SERVICE_URL:  ${url.hostprefix}${url.bscPath}${url.distributeBasePath}/distributeorder/checkuser
+        SAVEDISTRIBUTEORDER_SERVICE_URL:  ${url.hostprefix}${url.bscPath}${url.distributeBasePath}/app/distribute/order/save
+        STAFF_TOKEN_URL:  ${url.hostprefix}${url.memberBasePath}/wisePlatform/getUserByToken
+        CHECK_STRATEGY_URL: ${url.hostprefix}${url.bscPath}${url.distributeBasePath}/app/distribute/checkstrategyitem
+        OPENID_SERVICE_URL: ${url.hostprefix}${url.memberBasePath}/wx/openid
+        scenic_service_url: ${url.hostprefix}/wzd-tourism-pandaro/encdata-pandaro/scenic/getCodes
+    - companyId: 11
+      urlMap:
+        CHECKUSER_SERVICE_URL:  ${url.hostprefix}${url.wzdPath}${url.distributeBasePath}/distributeorder/checkuser
+        SAVEDISTRIBUTEORDER_SERVICE_URL:  ${url.hostprefix}${url.wzdPath}${url.distributeBasePath}/app/distribute/order/save
+        STAFF_TOKEN_URL:  ${url.hostprefix}${url.memberBasePath}/wisePlatform/getUserByToken
+        CHECK_STRATEGY_URL: ${url.hostprefix}${url.wzdPath}${url.distributeBasePath}/app/distribute/checkstrategyitem
+        OPENID_SERVICE_URL: ${url.hostprefix}${url.memberBasePath}/wx/openid
+        scenic_service_url: ${url.hostprefix}/wzd-tourism-pandaro/encdata-pandaro/scenic/getCodes
+        getDistributeByUserId: ${url.hostprefix}/${url.wzdPath}${url.distributeBasePath}/distributor/getbyuserid
+        DISTRIBUTE_URL: ${url.hostprefix}${url.wzdPath}${url.distributeBasePath}
+        GET_GOODSID_BYROLEID: ${url.hostprefix}${url.wzdPath}${url.distributeBasePath}/distributor/role/goodsid
+# 小程序授权登录配置
+wxpay:
+  wxPayConfig:
+    # 西藏大峡谷小程序配置
+    -  companyId: 5
+       appId: wx73466b979c886373
+       mchId: 1504256541
+       key: 849f35d652f825eb7028369517ee1f87
+       tradeType: JSAPI
+       notifyUrl: http://tx.enn.cn/mall-v1/orders/complate
+    # 涠洲岛小程序配置
+    -  companyId: 11
+       appId: wx76453a21da3fe5b3
+       mchId: 1325029701
+       key: 91b147c700de21a6163ed68833903dd9
+       tradeType: JSAPI
+       notifyUrl: http://tx.enn.cn/wzd-mall-v1/orders/complate
+
+# 队列配置
+queueconfig:
+  prefix: wzd.
+
+audit:
+  phone: 15011246078
+  name: 石斋
+  h5url: /mall-audith5/#/withdrawal
+  refundH5Url: /mall-audith5/#/refund

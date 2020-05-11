@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.platform.mall.mapper.OrderStateHistoryMapper">
+
+    <!--<select id="selectOrdersById" parameterType="java.lang.Long" resultType="cn.enn.wise.platform.mall.bean.bo.autotable.OrderStateHistory">
+    select
+      id orderId, order_code orderCode, user_id userId, scenic_id scenicId, type, goods_Id goodsId, goods_name goodsName,
+			goods_price goodsPrice, state, expired_time expiredTime, amount, pay_type payType, enter_time enterTime,
+			ticket_order_code ticketOrderCode, id_number idNumber, name, prepay_id prepayId, bat_code batCode,
+			bat_code_other batCodeOther, checked_num checkedNum, return_num returnNum, uncheked_num unchekedNum,
+			sigle_price siglePrice, is_distribute_order isDistributeOrder, order_source orderSource, pay_status payStatus,
+			actual_pay actualPay, should_pay shouldPay, user_wechat_name userWechatName, phone, max_number_of_users maxNumberOfUsers,
+			create_time createTime, create_user_id createUserId, create_user_name createUserName, update_time updateTime,
+			update_user_id updateUserId, distributor_id distributorId, update_user_name updateUserName, profit_status profit_status,
+			order_type orderType, offline_user offlineUser, offline_status offlineStatus, snapshot, project_id projectId,
+			qr_code qrCode, proof, reason, comm_sts commSts, delete_status deleteStatus, group_order_id groupOrderId,
+			pay_time payTime, promotion_id promotionId, user_of_coupon_id userOfCouponId, coupon_price couponPrice,
+			ship_ticket_code shipTicketCode, transaction_id transactionId
+	from orders where id = #{id}
+    </select>-->
+
+    <select id="selectOrdersById" parameterType="java.lang.Long" resultType="cn.enn.wise.platform.mall.bean.param.OrderAllAttribute">
+    select
+            id, order_code orderCode, user_id userId, scenic_id scenicId, type, goods_Id goodsId, goods_name goodsName,
+			goods_price goodsPrice, state, expired_time expiredTime, amount, pay_type payType, enter_time enterTime,
+			ticket_order_code ticketOrderCode, id_number idNumber, name, prepay_id prepayId, bat_code batCode,
+			bat_code_other batCodeOther, checked_num checkedNum, return_num returnNum, uncheked_num unchekedNum,
+			sigle_price siglePrice, is_distribute_order isDistributeOrder, order_source orderSource, pay_status payStatus,
+			actual_pay actualPay, should_pay shouldPay, user_wechat_name userWechatName, phone, max_number_of_users maxNumberOfUsers,
+			create_time createTime, create_user_id createUserId, create_user_name createUserName, update_time updateTime,
+			update_user_id updateUserId, distributor_id distributorId, update_user_name updateUserName, profit_status profit_status,
+			order_type orderType, offline_user offlineUser, offline_status offlineStatus, snapshot, project_id projectId,
+			qr_code qrCode, proof, reason, comm_sts commSts, delete_status deleteStatus, group_order_id groupOrderId,
+			pay_time payTime, promotion_id promotionId, user_of_coupon_id userOfCouponId, coupon_price couponPrice,
+			ship_ticket_code shipTicketCode, transaction_id transactionId
+	from orders where id = #{id}
+    </select>
+
+</mapper>

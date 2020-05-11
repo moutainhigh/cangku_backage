@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.ssop.service.promotions.mapper.ActivityGoodsMapper">
+
+
+    <select id="getActivityTypeListByGoods"
+            resultType="cn.enn.wise.ssop.api.promotions.dto.response.ActivityTypeDTO">
+        SELECT
+            ags.goods_id,
+            group_concat(abe.activity_type) AS activity_type
+        FROM
+            activity_goods ags
+        LEFT JOIN activity_rule `are` ON ags.activity_rule_id = `are`.id
+        LEFT JOIN activity_base abe ON `are`.activity_base_id = abe.id
+        WHERE
+            ags.goods_id IN
+        <foreach collection="goods" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+        AND abe.state = 2
+        AND abe.start_time &lt; NOW()
+        AND abe.end_time &gt; NOW()
+        AND abe.activity_type != 3
+        GROUP BY
+            ags.goods_id
+    </select>
+
+    <select id="getActivityRuleDetailsByGoods"
+            resultType="cn.enn.wise.ssop.api.promotions.dto.response.ActivityRuleDetailsDTO">
+        SELECT
+            `are`.id AS activity_rule_id,
+	        abe.id AS activity_base_id,
+            adr.algorithms,
+            adr.discount_rule
+        FROM
+            activity_goods ags
+        LEFT JOIN activity_rule `are` ON ags.activity_rule_id = `are`.id
+        LEFT JOIN activity_discount_rule adr ON adr.activity_rule_id = `are`.id
+        LEFT JOIN activity_base abe ON `are`.activity_base_id = abe.id
+        WHERE
+            ags.goods_id = #{id}
+        AND abe.state = 2
+        AND abe.start_time &lt; NOW()
+        AND abe.end_time &gt; NOW()
+        AND abe.activity_type != 3
+        AND adr.discount_rule IS NOT NULL
+    </select>
+
+</mapper>

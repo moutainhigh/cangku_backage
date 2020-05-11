@@ -1,0 +1,27 @@
+[
+  {
+    "id": 1,
+    "name": "admin",
+    "passwd": "123456",
+    "companyId": 1,
+    "companyName": "西藏大峡谷景区"
+  },
+
+  {
+    "id": 2,
+    "name": "bscadmin",
+    "passwd": "123456",
+    "companyId": 10,
+    "companyName": "巴松措景区"
+  }
+
+,
+
+  {
+    "id": 3,
+    "name": "wzdadmin",
+    "passwd": "123456",
+    "companyId": 11,
+    "companyName": "涠洲岛景区"
+  }
+]

@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: cn.enn.wise.ssop:ssop-common:1.0-SNAPSHOT">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/cn/enn/wise/ssop/ssop-common/1.0-SNAPSHOT/ssop-common-1.0-20200505.093355-6.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/cn/enn/wise/ssop/ssop-common/1.0-SNAPSHOT/ssop-common-1.0-20200505.093355-6-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/cn/enn/wise/ssop/ssop-common/1.0-SNAPSHOT/ssop-common-1.0-20200505.093355-6-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

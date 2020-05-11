@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.platform.mall.mapper.OrdersTicketMapper">
+
+
+    <update id="updateChangeTicketInfoById" parameterType="cn.enn.wise.platform.mall.bean.bo.OrderTicket">
+        update order_ticket set ticket_state_bbd = #{ticketStateBbd} ,change_info=#{changeInfo} where id = #{id}
+    </update>
+
+
+    <select id="getBaiBangDaOrderList" resultType="Map">
+        SELECT
+            os.id,
+            os.order_code orderCode,
+            os.state state,
+            os.is_distribute_order isDistributeOrder,
+            ot.id ticketId,
+            ot.ticket_id_bbd ticketIdBbd,
+            ot.is_ticket_printed isTicketPrinted
+        FROM
+            orders os
+                INNER JOIN
+            order_ticket ot ON os.id = ot.order_id
+        WHERE
+            left(os.create_time,10) = left(now(),10)
+            AND (os.state = 2 OR os.state = 3)
+            AND os.order_type = 6
+            AND os.is_distribute_order = 1
+    </select>
+
+</mapper>

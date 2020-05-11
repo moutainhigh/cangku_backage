@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.platform.mall.mapper.ServicePlaceMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.enn.wise.platform.mall.bean.bo.ServicePlace">
+        <id column="id" property="id" />
+        <result column="service_place_name" property="servicePlaceName" />
+        <result column="status" property="status" />
+        <result column="company_id" property="companyId" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, service_place_name, status, company_id
+    </sql>
+
+    <select id="selectServicePlaceByIds" resultType="cn.enn.wise.platform.mall.bean.bo.ServicePlace" >
+        select * from service_place where id in(${ids})
+    </select>
+
+    <select id="getServicePlaceByProjectId" resultType="cn.enn.wise.platform.mall.bean.bo.ServicePlace">
+        SELECT
+        id,
+        service_place_name
+        FROM
+        service_place
+        WHERE
+        id IN (
+        (
+        SELECT
+        substring_index(
+        substring_index(
+        g.service_place_id,
+        ',',
+        b.id + 1
+        ),
+        ',' ,- 1
+        ) NAME
+        FROM
+        goods_project g
+        JOIN incr_num b ON b.id &lt; (
+        length(g.service_place_id) - length(
+        REPLACE (g.service_place_id, ',', '')
+        ) + 1
+        )
+        WHERE
+        g.id = #{id}
+        )
+        )
+    </select>
+</mapper>

@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.platform.mall.mapper.GroupOrderMapper">
+
+
+    <select id="getGroupOrderByIdAndAvailableTime" resultType="cn.enn.wise.platform.mall.bean.vo.GroupOrderVo">
+
+        select
+          go.id,
+          go.group_promotion_id,
+          go.group_order_code,
+          go.goods_num,
+          go.goods_id,
+          go.create_time,
+          go.group_size,
+          go.status,
+          go.end_time,
+          go.available_time,
+          go.user_id,
+					count(goi.id)
+        from group_order go INNER JOIN group_order_item goi ON goi.group_order_id=go.id
+        where go.id =  #{id} and go.available_time >SYSDATE() and go.status=2
+
+    </select>
+
+    <select id="getGroupOrderById" resultType="cn.enn.wise.platform.mall.bean.bo.GroupOrderBo">
+
+        select
+          id,
+          group_promotion_id,
+          group_order_code,
+          goods_num,
+          goods_id,
+          create_time,
+          group_size,
+          status,
+          end_time,
+          available_time,
+          user_id
+        from group_order
+        where id = #{id}
+    </select>
+
+    <select id="getGroupOrderByGoodsId" resultType="cn.enn.wise.platform.mall.bean.bo.GroupOrderBo">
+        select
+          id,
+          group_promotion_id,
+          group_order_code,
+          goods_num,
+          goods_id,
+          create_time,
+          group_size,
+          status,
+          end_time,
+          available_time,
+          user_id
+        from group_order
+        where goods_id = #{goodsId} and available_time >SYSDATE() and status = 2  ORDER BY id
+    </select>
+
+    <select id="getGroupOrderForList" resultType="cn.enn.wise.platform.mall.bean.vo.GroupOrderVo">
+        SELECT
+            go.id,
+            go.group_promotion_id,
+            go.group_order_code,
+            go.goods_num,
+            go.goods_id,
+            go.create_time,
+            go.group_size,
+            go.status,
+            go.end_time,
+            go.available_time,
+            go.user_id,
+            gods.project_id,
+        count(goi.id) saleNum
+
+        FROM
+            group_order go inner join goods gods on go.goods_id = gods.id
+        LEFT JOIN group_order_item goi on go.id=goi.group_order_id and goi.status=1
+        WHERE
+            go.goods_id =#{goodsId} and go.available_time >SYSDATE() and go.status = 2
+
+        group by go.id,
+            go.group_promotion_id,
+            go.group_order_code,
+            go.goods_num,
+            go.goods_id,
+            go.create_time,
+            go.group_size,
+            go.status,
+            go.end_time,
+            go.available_time,
+            go.user_id,
+            gods.project_id
+          ORDER BY available_time,saleNum
+          LIMIT 0,20
+    </select>
+    <select id="getGroupOrderListByTime" resultType="cn.enn.wise.platform.mall.bean.bo.GroupOrderBo">
+        select
+          id,
+          group_promotion_id,
+          group_order_code,
+          goods_num,
+          goods_id,
+          create_time,
+          group_size,
+          status,
+          end_time,
+          available_time,
+          user_id
+        from group_order
+        where  SYSDATE()>available_time and status = 2
+        UNION
+        select
+          go.id,
+          go.group_promotion_id,
+          go.group_order_code,
+          go.goods_num,
+          go.goods_id,
+          go.create_time,
+          go.group_size,
+          go.status,
+          go.end_time,
+          go.available_time,
+          go.user_id
+        from group_order go INNER JOIN group_promotion gp ON gp.id=go.group_promotion_id and gp.`status` in(1,3,4)
+        where go.`status`=2
+    </select>
+
+    <select id="getGroupOrderListByPage" parameterType="cn.enn.wise.platform.mall.bean.param.GroupOrderParam" resultType="cn.enn.wise.platform.mall.bean.vo.GroupOrderVo">
+        select
+        max(o.id) id,
+        max(o.group_order_code) code,
+        max(p.name) name,
+        max(o.group_size) groupSize,
+        max(o.status) status,
+        max(o.available_time) validHours,
+        max(o.create_time)  startTime,
+        max(o.end_time) endTime,
+        count(i.id) userCount,
+        max(r.is_auto_create_group) isAutoFinish
+        from group_order o
+        left join group_promotion p on p.id=o.group_promotion_id
+        left join group_rule r on r.id = p.rule_id
+        left join (select * from   group_order_item where status=1) i on i.group_order_id=o.id
+        left join orders os on os.id = i.order_id
+        <where>
+
+
+
+            <if test="params.phone != null and params.phone !='' ">
+                and  os.phone like CONCAT('%',#{params.phone},'%')
+            </if>
+
+            <if test="params.status != null">
+                and
+                o.status in
+                <foreach collection="params.status" item="id" index="index" open="(" close=")" separator=",">
+                    #{id}
+                </foreach>
+            </if>
+            <if test="params.contacts != null and params.contacts!='' ">
+                and  os.name like  CONCAT('%',#{params.contacts},'%')
+            </if>
+            <if test="params.promotionName != null and params.promotionName!='' ">
+                and  p.name like  CONCAT('%',#{promotionName},'%')
+            </if>
+            <if test="params.startTime != null and params.startTime!='' ">
+                and  o.create_time >=  #{params.startTime}
+            </if>
+            <if test="params.endTime != null and params.endTime!='' ">
+                and  o.end_time &lt;=  #{params.endTime}
+            </if>
+            <if test="params.isAutoFinish != null and params.isAutoFinish!='' ">
+                and  r.is_auto_create_group =  #{params.isAutoFinish}
+            </if>
+        </where>
+        group by o.id
+        order by id desc
+        limit #{params.offset},#{params.limit}
+
+
+
+    </select>
+    <select id="getAppletsGroupOrderInfoVo" resultType="cn.enn.wise.platform.mall.bean.vo.GroupOrderInfoVo">
+        select  go.id,
+        go.goods_id,
+        go.`status`,
+        go.group_size,
+        go.available_time as endTime,
+        go.user_id as userId,
+        go.group_promotion_id,
+        if(TIMESTAMPDIFF(SECOND,NOW(),go.available_time) &lt; 1,0,TIMESTAMPDIFF(SECOND,NOW(),go.available_time))  as remainingSeconds,
+        (go.group_size-count( distinct goi.id)) remainingNumber,
+        GROUP_CONCAT(goi.user_id) AS userIds,
+        gpo.scenic_spots as scenicSpots,
+        gpog.goods_price as goodPrice,
+        gpog.group_price as groupPrice,
+        gpog.retail_price,
+        gp.id as projectId,
+        gp.NAME as projectName,
+        gp.project_code as projectCode,
+        gp.operation_time as operationTime,
+        gp.project_present as projectPresent,
+        gp.abbreviation,
+        gp.service_place_id
+        from group_order go
+        inner join group_order_item  goi on go.id = goi. group_order_id
+        inner join goods g on g.id = go.goods_id
+        inner join goods_project gp on gp.id = g.project_id
+        inner join group_promotion gpo on gpo.id =go.group_promotion_id
+        inner join  group_promotion_goods gpog on  gpog. group_promotion_id=gpo.id
+
+        where go.id=#{id}  and gpog.goods_id =  go.goods_id
+        group by go.id
+        order by go.id, goi.join_time;
+
+    </select>
+
+    <select id="getMemberIfInTheGroup" resultType="map">
+        SELECT
+            go.id as groupOrderId,
+            goi.user_id as userId
+        FROM
+            group_order go
+                LEFT JOIN group_order_item goi ON go.id = goi.group_order_id
+        WHERE
+            go.group_promotion_id = #{groupPromotionId}
+          AND go.goods_id = #{goodsId}
+          AND go. STATUS IN (1, 2)
+          AND goi.user_id = #{userId} and go.user_id = #{userId} limit 1
+
+    </select>
+
+    <select id="getGroupOrderListCounts" resultType="Map">
+
+        select count(1) total from (
+        select
+        o.id
+        from group_order o
+        inner join group_promotion p on p.id=o.group_promotion_id
+        inner join group_rule r on r.id = p.rule_id
+        inner join group_order_item i on i.group_order_id=o.id
+        inner join orders os on os.id = i.order_id
+        <where>
+            <if test="params.phone != null and params.phone !='' ">
+                and  os.phone like CONCAT('%',#{params.phone},'%')
+            </if>
+
+            <if test="params.status != null">
+                and
+                o.status in
+                <foreach collection="params.status" item="id" index="index" open="(" close=")" separator=",">
+                    #{id}
+                </foreach>
+            </if>
+            <if test="params.contacts != null and params.contacts!='' ">
+                and  os.name like  CONCAT('%',#{params.contacts},'%')
+            </if>
+            <if test="params.promotionName != null and params.promotionName!='' ">
+                and  p.name like  CONCAT('%',#{promotionName},'%')
+            </if>
+            <if test="params.startTime != null and params.startTime!='' ">
+                and  o.create_time >=  #{params.startTime}
+            </if>
+            <if test="params.endTime != null and params.endTime!='' ">
+                and  o.end_time &lt;=  #{params.endTime}
+            </if>
+            <if test="params.isAutoFinish != null and params.isAutoFinish!='' ">
+                and  r.is_auto_create_group =  #{params.isAutoFinish}
+            </if>
+        </where>
+        group by  o.id
+        ) t
+    </select>
+
+    <select id="getGoodsAndGroupPromotionInfoByExtendId" resultType="cn.enn.wise.platform.mall.bean.vo.GoodsAndGroupPromotionInfoVo">
+        SELECT
+            gpg.project_id as projectId,
+            gpg.goods_id as goodsId,
+            gpg.goods_price as goodsPrice,
+            gpg.group_price as groupPrice,
+            gpg.goods_num as goodsNum,
+            gpg.goods_name as goodsName,
+            gr.group_size as groupSize,
+            gr.is_auto_create_group as isAutoCreateGroup,
+            gr.group_type as groupType,
+            gr.group_valid_hours as groupValidHours,
+            gr.group_limit as groupLimit,
+            gr.type as type
+        FROM
+            group_promotion_goods gpg
+                LEFT JOIN group_promotion gp ON gp.id = gpg.group_promotion_id
+                LEFT JOIN group_rule gr ON gp.rule_id = gr.id
+        WHERE
+                gpg.goods_id = (
+                SELECT
+                    goods_id
+                FROM
+                    goods_extend
+                WHERE
+                    id = #{extendId}
+            )
+          AND gp.id = #{promotionId}
+          AND gp. STATUS = 2
+          AND gr.type = #{type}
+    </select>
+
+    <insert id="saveGroupOrder" parameterType="cn.enn.wise.platform.mall.bean.bo.GroupOrderBo" keyProperty="id" useGeneratedKeys="true">
+
+        insert into group_order(id,group_promotion_id, group_order_code, goods_num,
+                                goods_id, create_time, group_size,
+                                status, end_time, user_id,available_time) VALUES
+            (   null,
+                #{groupPromotionId},
+                (select o.groupOrderCode from
+                    (select concat('TD',right(DATE_FORMAT(NOW(),'%Y%m'),4),
+                                   LPAD((select ifnull(count(id),0)+1 from group_order where left(now(),7) =left(create_time,7)),4,'0')
+                                   ) groupOrderCode) o),
+                #{goodsNum},
+                #{goodsId},
+                #{createTime},
+                #{groupSize},
+                #{status},
+                #{endTime},
+                #{userId},
+                #{availableTime}
+            )
+    </insert>
+
+
+    <select id="getGroupLimitById" resultType="java.lang.Long">
+        SELECT
+	        gr.group_limit
+        FROM
+            group_promotion gp
+        INNER JOIN group_rule gr ON gp.rule_id = gr.id
+        WHERE
+            gp.id = #{promotionId}
+    </select>
+
+    <select id="getBuyAmount" resultType="map">
+        select count(distinct go.id) as amount , gr.group_limit as groupLimit from group_order go
+       inner join group_promotion  gp on gp.id = go.group_promotion_id
+       inner join group_rule gr on gr.id = gp.rule_id
+       left join group_order_item  goi on goi.group_order_id = go.id
+        where go.status in(1,2,3) and goi.user_id = #{userId} and go.group_promotion_id = #{promotionId}
+    </select>
+
+
+    <update id="updateStatusById">
+        UPDATE group_order SET status = #{status},end_time=NOW()
+        WHERE id=#{id}
+    </update>
+</mapper>

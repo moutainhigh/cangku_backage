@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.enn.wise.platform.mall.mapper.RefundApplyMapper">
+
+    <insert id="addOrderRefundExtend" parameterType="cn.enn.wise.platform.mall.bean.bo.OrderRefundExtend">
+        insert into order_refund_extend
+        (order_refund_id,order_item_id,project_id,project_name,goods_id,goods_name,refund_num,refund_amount,refund_price)
+        values
+        <foreach collection="refundApplyDetailedParamList" item="refundApplyDetailedParamList" index="index"
+                 separator=",">
+            (
+            #{refundApplyDetailedParamList.orderRefundId},
+            #{refundApplyDetailedParamList.orderItemId},
+            #{refundApplyDetailedParamList.itemId},
+            #{refundApplyDetailedParamList.itemName},
+            #{refundApplyDetailedParamList.goodsId},
+            #{refundApplyDetailedParamList.goodsName},
+            #{refundApplyDetailedParamList.refundNum},
+            #{refundApplyDetailedParamList.amount},
+            #{refundApplyDetailedParamList.price}
+            )
+        </foreach>
+    </insert>
+
+    <select id="findOrderRefundExtend" resultType="cn.enn.wise.platform.mall.bean.bo.OrderRefundExtend">
+        select
+        id,order_refund_id,order_item_id,project_id,project_name,goods_id,goods_name,refund_num,refund_amount,refund_price
+        from order_refund_extend where order_refund_id in
+        <foreach collection="refundApplyIdList" item="refundApplyIdList" index="index"
+                 open="(" close=")" separator=",">
+            #{refundApplyIdList}
+        </foreach>
+    </select>
+
+    <select id="findOrderRefundExtends" resultType="cn.enn.wise.platform.mall.bean.bo.OrderRefundExtend">
+        select
+        id,order_refund_id,order_item_id,project_id,project_name,goods_id,goods_name,refund_num,refund_amount,refund_price
+        from order_refund_extend where order_refund_id = #{id}
+    </select>
+
+    <update id="updateOrderTicketRefundSts">
+        UPDATE order_ticket
+        SET refund_sts = '2'
+        WHERE
+        id =#{id}
+    </update>
+
+
+    <select id="findRefundListPc" resultType="cn.enn.wise.platform.mall.bean.vo.RefundOrderPc">
+        SELECT DISTINCT
+        ord.id,
+        ord.order_id orderCode,
+        ord.order_amount,
+        ord.goods_num,
+        ord.refund_amount,
+        ord.return_money_sts refundSts,
+        ord.apply_time,
+        ord.refund_time,
+        ord.buyer_msg,
+        ord.buyer_msg_type,
+        ord.reason_label,
+        ord.handle_name,
+        ord.platform,
+        ord.approvals_sts,
+        ord.approvals_time,
+        ore.refund_num
+        FROM
+        order_refund ord LEFT JOIN order_refund_extend ore ON ord.id = ore.order_refund_id WHERE ord.platform !=3
+        <if test="refundReqParam.orderCode != '' ">
+            AND
+            ord.order_id LIKE '%${refundReqParam.orderCode}%'
+        </if>
+
+        <if test="refundReqParam.refundNum != '' ">
+            AND
+            ore.refund_num LIKE '%${refundReqParam.refundNum}%'
+        </if>
+
+        <if test="refundReqParam.platform != null ">
+            AND
+            ord.platform=#{refundReqParam.platform}
+        </if>
+
+        <if test="refundReqParam.handleName != '' ">
+            AND
+            ord.handle_name=#{refundReqParam.handleName}
+        </if>
+
+        <if test="refundReqParam.applyStartTime !='' and refundReqParam.applyEndTime !=''">
+            AND
+            (ord.apply_time BETWEEN #{refundReqParam.applyStartTime} and #{refundReqParam.applyEndTime})
+        </if>
+
+        <if test="refundReqParam.approvalsStartTime !='' and refundReqParam.approvalsEndTime !='' ">
+            AND
+            (ord.approvals_time BETWEEN #{refundReqParam.approvalsStartTime} and #{refundReqParam.approvalsEndTime})
+        </if>
+
+        <if test="refundReqParam.refundSts != null ">
+            AND
+            ord.return_money_sts=#{refundReqParam.refundSts}
+        </if>
+
+        <if test="refundReqParam.approvalsSts != null ">
+            AND
+            ord.approvals_sts=#{refundReqParam.approvalsSts}
+        </if>
+        ORDER BY ord.apply_time DESC
+    </select>
+
+    <update id="updateOrderTicketById">
+        UPDATE order_ticket
+        SET refund_sts = '1'
+        WHERE
+        id =#{id}
+    </update>
+
+    <select id="findOrderRefundByRefundNum" resultType="cn.enn.wise.platform.mall.bean.bo.OrderRefundExtend">
+        select
+        id,order_refund_id,order_item_id,project_id,project_name,goods_id,goods_name,refund_num,refund_amount,refund_price
+        from order_refund_extend where refund_num = #{refundNum}
+    </select>
+
+
+    <update id="batchRefund">
+        UPDATE order_refund SET `return_money_sts` = 1
+        WHERE id IN
+        <foreach item="id" collection="id" open="(" separator=","
+                 close=")">
+            #{id}
+        </foreach>
+    </update>
+
+
+    <update id="updateBoatOrderSts">
+        UPDATE order_ticket
+        SET ship_ticket_status = #{status},refund = #{refundPrice},refund_ratio = #{fee},refund_sts = 2
+        WHERE
+        ticket_id =#{ticketIds}
+    </update>
+
+</mapper>

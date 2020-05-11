@@ -1,0 +1,1 @@
+ALTER TABLE orders MODIFY enter_time varchar(30) COMMENT '入园时间';

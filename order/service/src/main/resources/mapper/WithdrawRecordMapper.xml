@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.ssop.service.order.mapper.WithdrawRecordMapper">
+
+
+
+    <select id="selectByParam" resultType="cn.enn.wise.ssop.service.order.model.WithdrawRecord">
+        select * from withdraw_record
+        where 1=1
+        <if test="param.cellphone != null and param.cellphone != ''">
+            and distributor_cellphone like '%${param.cellphone}%'
+        </if>
+
+        <if test="param.applyDate != null and param.applyDate != ''">
+            and apply_date_time &gt;='${param.applyDateStart} 00:00:00'
+            and apply_date_time &lt;='${param.applyDateEnd} 23:59:59'
+        </if>
+
+        <if test="param.distributor != null and param.distributor != ''">
+            and distributor_name like '%${param.distributor}%'
+        </if>
+
+        <if test="param.serial != null and param.serial != ''">
+            and withdraw_serial like '%${param.serial}%'
+        </if>
+
+        <if test="param.auditDate != null and param.auditDate != ''">
+            and permit_date_time &gt;='${param.auditDateStart} 00:00:00'
+            and permit_date_time &lt;='${param.auditDateEnd} 23:59:59'
+        </if>
+
+        <if test="param.auditor != null and param.auditor != ''">
+            and permit_user_name like '%${param.auditor}%'
+        </if>
+
+        <if test="param.putOut != '7' and  param.putOut != null and param.putOut !='' ">
+            and put_out=#{param.putOut}
+        </if>
+
+        <if test="param.permit != '7' and param.permit != null and param.permit !='' ">
+            and permit=#{param.permit}
+        </if>
+        order by apply_date_time desc
+        limit #{param.offset},#{param.pageSize}
+    </select>
+
+
+    <select id="selectByParamCount" resultType="java.lang.Long">
+        select count(1) from withdraw_record
+        where 1=1
+        <if test="param.cellphone != null and param.cellphone != ''">
+            and distributor_cellphone like '%${param.cellphone}%'
+        </if>
+
+        <if test="param.applyDate != null and param.applyDate != ''">
+            and apply_date_time &gt;='${param.applyDateStart} 00:00:00'
+            and apply_date_time &lt;='${param.applyDateEnd} 23:59:59'
+        </if>
+
+        <if test="param.distributor != null and param.distributor != ''">
+            and distributor_name like '%${param.distributor}%'
+        </if>
+
+        <if test="param.serial != null and param.serial != ''">
+            and withdraw_serial like '%${param.serial}%'
+        </if>
+
+        <if test="param.auditDate != null and param.auditDate != ''">
+            and permit_date_time &gt;='${param.auditDateStart} 00:00:00'
+            and permit_date_time &lt;='${param.auditDateEnd} 23:59:59'
+        </if>
+
+        <if test="param.auditor != null and param.auditor != ''">
+            and permit_user_name like '%${param.auditor}%'
+        </if>
+
+        <if test="param.putOut != '7' and  param.putOut != null and param.putOut !='' ">
+            and put_out=#{param.putOut}
+        </if>
+
+        <if test="param.permit != '7' and param.permit != null and param.permit !='' ">
+            and permit=#{param.permit}
+        </if>
+    </select>
+
+
+</mapper>

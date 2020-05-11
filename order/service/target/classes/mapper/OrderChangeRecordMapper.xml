@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.ssop.service.order.mapper.OrderChangeRecordMapper">
+
+<resultMap id="orderInfoResultMap" type="cn.enn.wise.ssop.service.order.model.OrderChangeRecord">
+    <id column="id" property="id"/>
+    <result column="order_id" property="orderId"/>
+    <result column="order_no" property="orderNo"/>
+    <result column="change_field" property="changeField"/>
+    <result column="old_value" property="oldValue"/>
+    <result column="new_value" property="newValue"/>
+    <result column="change_reason" property="changeReason"/>
+    <result column="change_time" property="changeTime"/>
+</resultMap>
+
+
+    <update id="batchUpdateOrderChangeRecord" parameterType="cn.enn.wise.ssop.service.order.model.OrderChangeRecord">
+        update order_change_record
+        set
+        update_time=now(),
+        <trim suffixOverrides=",">
+            <if test="changeField != null and changeField != ''">
+                change_field=#{changeField},
+            </if>
+            <if test="oldValue != null  and oldValue != ''">
+                old_value=#{oldValue},
+            </if>
+            <if test="newValue != null  and newValue != ''">
+                new_value=#{newValue},
+            </if>
+            <if test="changeReason != null  and changeReason != ''">
+                change_reason=#{changeReason},
+            </if>
+            <if test="changeTime != null">
+                change_time=#{changeTime}
+            </if>
+        </trim>
+
+        <where>
+            <foreach collection="list" open="in (" close=")" separator="," item="item">
+                #{orderId}
+            </foreach>
+        </where>
+    </update>
+
+    <insert id="batchInsertOrderChangeRecord" parameterType="java.util.List" useGeneratedKeys="false">
+        insert into order_change_record
+        ( order_id,order_no,change_field,old_value,new_value,change_reason,change_time)
+        values
+        <foreach collection="list" item="item" index="index" separator="," >
+            (
+            #{item.orderId},
+            #{item.orderNo},
+            #{item.changeField},
+            #{item.oldValue},
+            #{item.newValue},
+            #{item.changeReason},
+            #{item.changeTime}
+            )
+        </foreach>
+    </insert>
+</mapper>

@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.platform.mall.mapper.GoodsMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.enn.wise.platform.mall.bean.bo.Goods">
+        <id column="id" property="id" />
+        <result column="project_id" property="projectId" />
+        <result column="resource_id" property="resourceId" />
+        <result column="category_id" property="categoryId" />
+        <result column="sales_unit" property="salesUnit" />
+        <result column="goods_name" property="goodsName" />
+        <result column="is_package" property="isPackage" />
+        <result column="base_price" property="basePrice" />
+        <result column="max_num" property="maxNum" />
+        <result column="service_place" property="servicePlace" />
+        <result column="goods_type" property="goodsType" />
+        <result column="create_time" property="createTime" />
+        <result column="create_user_id" property="createUserId" />
+        <result column="create_user_name" property="createUserName" />
+        <result column="update_time" property="updateTime" />
+        <result column="update_user_id" property="updateUserId" />
+        <result column="update_user_name" property="updateUserName" />
+    </resultMap>
+
+    <resultMap id="goodsListResultMap" type="cn.enn.wise.platform.mall.bean.vo.GoodsApiResVO">
+        <id column="id" property="id" />
+        <result column="goods_name" property="goodsName" />
+        <result column="is_package" property="isPackage" />
+        <result column="rules" property="rules" />
+        <result column="base_price" property="basePrice" />
+        <result column="goods_code" property="goodsCode" />
+        <result column="goods_status" property="goodsStatus" />
+        <result column="max_num" property="maxNum" />
+        <result column="service_place" property="servicePlace" />
+        <result column="goods_type" property="goodsType" />
+        <collection property="goodsApiExtendResVoList" ofType="cn.enn.wise.platform.mall.bean.vo.GoodsApiExtendResVo">
+            <id column="pid" property="id"/>
+            <result column="timespan" property="timespan"/>
+            <result column="sale_price" property="salePrice"/>
+            <result column="period_id" property="periodId"/>
+            <result column="probability" property="probability"/>
+            <result column="operationSatus" property="operationSatus"/>
+            <result column="operation_date" property="operationDate"/>
+            <result column="time_label" property="timeLabel" />
+        </collection>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, project_id, resource_id, category_id, sales_unit, goods_name, is_package, base_price, max_num, service_place, goods_type, create_time, create_user_id, create_user_name, update_time, update_user_id, update_user_name
+    </sql>
+
+    <select id="getGoodsList" parameterType="cn.enn.wise.platform.mall.bean.param.GoodsReqParam" resultMap="goodsListResultMap">
+        select
+               g.id,
+               g.goods_name,
+               g.rules,
+               g.goods_status,
+               g.goods_code,
+               g.is_package,
+               g.base_price,
+               g.max_num,
+               g.service_place,
+               g.goods_type,
+               ge.timespan,
+               ge.sale_price,
+               ge.period_id,
+               ge.time_label,
+               (
+               SELECT if(count(1)>0,1,2) from goods_extend ex  inner join goods_project_operation o on o.period_id=ex.period_id where  o.operation_date =gpo.operation_date   and o.period_id=ge.period_id and o.`status` !=2
+               ) operationSatus,
+               gpo.operation_date
+        from goods g
+                 left join  goods_extend  ge on ge.goods_id = g.id
+                 left join goods_project_operation  gpo on  gpo.period_id = ge.period_id
+        where g.project_id = #{projectId}  and gpo.operation_date = #{operationDate}  and ge.`status`=1 and g.goods_status= 1
+        group by ge.id,gpo.operation_date
+        order by  g.max_num, ge.timespan
+    </select>
+    <select id="getGoodsById" parameterType="cn.enn.wise.platform.mall.bean.param.GoodsReqParam" resultMap="goodsListResultMap">
+        select
+               g.id,
+               g.goods_name,
+               g.goods_status,
+               g.base_price,
+               g.is_package,
+               g.max_num,
+               g.goods_type,
+               ge.timespan,
+               ge.sale_price,
+               ge.period_id,
+               ge.id as pid,
+               (
+               SELECT if(count(1)>0,1,2) from goods_extend ex  inner join goods_project_operation o on o.period_id=ex.period_id where  o.operation_date =gpo.operation_date   and o.period_id=ge.period_id and o.`status` !=2
+               ) operationSatus,
+               gpo.operation_date
+        from goods g
+                 left join  goods_extend  ge on ge.goods_id = g.id
+                 left join goods_project_operation  gpo on  gpo.period_id = ge.period_id
+        where g.project_id =#{projectId}  and   gpo.operation_date =#{operationDate}  and  ge.period_id =#{periodId} and goods_id=#{goodsId} and ge.status =1
+        group by ge.id,gpo.operation_date
+    </select>
+    <select id="getGoodsByGoodsProject" resultType="cn.enn.wise.platform.mall.bean.bo.Goods">
+
+        select
+            id,
+            project_id,
+            resource_id,
+            category_id,
+            sales_unit,
+            goods_name,
+            is_package,
+            base_price,
+            max_num,
+            service_place,
+            goods_type,
+            goods_status,
+            goods_code,
+            rules
+        from goods
+        where goods_status = 1 and project_id = #{id}
+    </select>
+
+    <select id="getGoodsPeriodIdByGoodsIdAndOperationDate" resultType="cn.enn.wise.platform.mall.bean.vo.GoodsExtendVo" >
+        select
+            ge.id,
+            ge.period_id,
+            ge.goods_id,
+            ge.timespan,
+            ge.orderby,
+            ge.sale_price,
+            ge.status,
+            ge.time_label
+            ,gpo.operation_date
+
+
+        from goods_extend  ge
+                 left join goods_project_operation gpo on ge.period_id = gpo.period_id
+        where ge.goods_id = #{goodsId} and  gpo.operation_date = #{operationDate} and gpo.service_place_id = #{servicePlaceId}
+          and ge.status = 1
+    </select>
+
+
+    <select id="getLineAndServicePlaceByProjectId" resultType="cn.enn.wise.platform.mall.bean.vo.GoodsProjectResVo">
+        (select a.*
+         from goods_project g
+         inner join (select id as line_id ,name as line_name ,1 as type from route where FIND_IN_SET (id,(select service_line from goods_project where id = #{id})))a )
+        union
+        (select b.*
+            from goods_project g
+        inner join (select id as place_id, service_place_name,2 as type from service_place where FIND_IN_SET (id,(select service_place_id from goods_project where id = #{id}))) b)
+
+    </select>
+
+    <select id="selectProjectIdByIdAndStatus" resultType="long">
+
+        select project_id from goods where  id in
+         <foreach collection="list" index="index" open="(" close=")" separator="," item="index">
+
+             #{index}
+         </foreach>
+          group by project_id
+
+    </select>
+
+    <select id="getGoodsByProject" resultType="cn.enn.wise.platform.mall.bean.vo.GoodsApiResVO">
+        select id, project_id, resource_id, category_id, sales_unit, goods_name, is_package,
+               base_price, max_num, service_place, goods_type, goods_status, goods_code, rules,
+               create_time, create_user_id, create_user_name, update_time, update_user_id, update_user_name, service_route,
+               single_service_duration, retail_price, is_by_period_operation
+
+        from goods where project_id = #{projectId} and goods_status = 1
+    </select>
+
+    <select id="getGroupInfoVoByGoodId" resultType="cn.enn.wise.platform.mall.bean.vo.GroupGoodsInfoVo">
+        select g.id as goodId,
+               g.is_package,
+               g.goods_name as goodName,
+               g.max_num,
+               ge.id as goodExtendId,
+               gp.id as projectId,
+               gp.project_code
+        from goods g
+                 inner join goods_extend ge on g.id= ge.goods_id
+                 inner join goods_project gp on g.project_id = gp.id
+        where g.id = #{goodId}  and g.goods_status = 1  and ge.status=1
+        limit 1
+    </select>
+
+    <select id="getSumBasePrice" resultType="map">
+        	select sum(base_price) as basePrice from goods where id in
+
+        <foreach collection="list" index="index" open="(" close=")" separator="," item="index">
+
+            #{index}
+        </foreach>
+
+    </select>
+
+    <select id="getGoodsExtendInfoById" resultType="cn.enn.wise.platform.mall.bean.vo.GoodsExtendInfoVO">
+        select
+               g.project_id,
+               g.max_num,
+               g.goods_name,
+               g.is_by_period_operation,
+               ge.period_id,
+               ge.sale_price,
+               ge.goods_id,
+               gp.project_code,
+               gp.name as projectName
+        from goods_extend ge
+        inner join goods g on ge.goods_id= g.id
+        inner join goods_project gp on gp.id = g.project_id
+        where ge.id = #{id}
+    </select>
+
+    <select id="getGoodsByExtendId" resultType="cn.enn.wise.platform.mall.bean.bo.Goods">
+        select
+              g.*
+        from goods  g
+        inner join goods_extend ge on ge.goods_id= g.id
+        where ge.id = #{id}
+    </select>
+
+
+    <update id="updateGoodsOrderBy">
+        update goods set orderby = #{orderBy} where id = #{id}
+    </update>
+
+</mapper>

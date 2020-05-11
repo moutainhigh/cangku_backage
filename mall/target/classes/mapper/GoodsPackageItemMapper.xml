@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.platform.mall.mapper.GoodsPackageItemMapper">
+
+
+    <select id="selectGoodsPackageItemByGoodsId" parameterType="java.lang.Long" resultType="cn.enn.wise.platform.mall.bean.param.GoodsPackageItemsParams">
+        select gpi.id,
+                gpi.package_id,
+                gpi.goods_id,
+                gpi.goods_name,
+                gpi.goods_extend_id,
+                gpi.base_retail_price,
+                gpi.base_sale_price,
+                gpi.retail_price,
+                gpi.sale_price,
+                gpi.project_id,
+                gpi.project_name,
+                gpi.service_place_id,
+                gpi.route_id
+        from goods_package_item gpi
+                INNER JOIN goods_extend ge on ge.id=gpi.package_id
+                INNER JOIN goods g on g.id=ge.goods_id
+        where g.id=#{goodsId}
+    </select>
+
+
+    <select id="selectGoodsPackageItemsByGoodsExtendId" parameterType="java.lang.Long" resultType="cn.enn.wise.platform.mall.bean.param.GoodsPackageItemsParams">
+        select gpi.id,
+        gpi.package_id,
+        gpi.goods_id,
+        gpi.goods_name,
+        gpi.goods_extend_id,
+        gpi.base_retail_price,
+        gpi.base_sale_price,
+        gpi.retail_price,
+        gpi.sale_price,
+        gpi.project_id,
+        gpi.project_name,
+        gpi.service_place_id,
+        gpi.route_id
+        from goods_package_item gpi
+        INNER JOIN goods_extend ge on ge.id=gpi.package_id
+        INNER JOIN goods g on g.id=ge.goods_id
+        where gpi.package_id=#{goodsExtendId}
+    </select>
+
+    <select id="selectItemByGoodsId" parameterType="java.lang.Long" resultType="cn.enn.wise.platform.mall.bean.param.GoodsPackageItemsParams">
+        select DISTINCT(gpi.project_name)
+        from goods_package_item gpi
+                INNER JOIN goods_extend ge on ge.id=gpi.package_id
+                INNER JOIN goods g on g.id=ge.goods_id
+        where g.id=#{goodsId}
+    </select>
+
+</mapper>

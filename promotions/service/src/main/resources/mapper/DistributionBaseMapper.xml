@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.ssop.service.promotions.mapper.DistributorBaseMapper">
+
+
+    <select id="getDistributorPageInfo"
+            parameterType="cn.enn.wise.ssop.api.promotions.dto.request.DistributorBaseListParam"
+            resultType="cn.enn.wise.ssop.api.promotions.dto.response.DistributorListDTO">
+        SELECT
+        b.id,b.distributor_name,b.scenic_name,b.city_name,b.area_name,b.channel_name,b.distributor_type,b.state,b.code,
+        b.verify_state,b.register_resource,c.channel_type,u.resource_type,u.business_counterpart,b.into_time,u.level,
+        d.verify_state  distributor_add_verify_state,b.verify_type,b.edit_step
+
+        FROM distributor_base b
+        LEFT JOIN distributor_business u on u.distributor_base_id=b.id
+        LEFT JOIN distributor_add d on  d.distributor_base_id =b.id
+        LEFT JOIN channel c on b.channel_id=c.id
+        <where>b.isdelete=1
+            <if test="channelName !=null and channelName !=''">
+                and b.distributor_name like concat('%',concat(#{channelName},'%'))
+            </if>
+            <if test="verifyState !=null and verifyState !=''">
+                and b.verify_state=#{verifyState}
+            </if>
+            <if test="distributorType !=null and distributorType !=''">
+                and b.distributor_type=#{distributorType}
+            </if>
+            <if test="state !=null and state !=''">
+                and b.state=#{state}
+            </if>
+            <if test="channelId !=null and channelId !=''">
+                and b.channel_id=#{channelId}
+            </if>
+            <if test="code !=null and code !=''">
+                and b.code like concat('%',concat(#{code},'%'))
+            </if>
+            <if test="businessCounterpart !=null and businessCounterpart !=''">
+                and u.business_counterpart like concat('%',concat(#{businessCounterpart},'%'))
+            </if>
+            <if test="channelType !=null and channelType !=''">
+                and u.channel_type=#{channelType}
+            </if>
+        </where>
+        order by b.create_time desc
+        limit ${pageNo-1},${pageSize}
+
+    </select>
+
+    <select id="getDistributorCount"
+            parameterType="cn.enn.wise.ssop.api.promotions.dto.request.DistributorBaseListParam" resultType="int">
+        SELECT
+        COUNT (*)
+        FROM distributor_base b
+        LEFT JOIN distributor_business u on u.distributor_base_id=b.id
+        LEFT JOIN distributor_add d on  d.distributor_base_id =b.id
+        LEFT JOIN channel c on b.channel_id=c.id
+        <where>
+            b.isdelete=1
+            <if test="channelName !=null and channelName !=''">
+                and b.distributor_name like concat('%',concat(#{channelName},'%'))
+            </if>
+            <if test="verifyState !=null and verifyState !=''">
+                and b.verify_state=#{verifyState}
+            </if>
+            <if test="distributorType !=null and distributorType !=''">
+                and b.distributor_type=#{distributorType}
+            </if>
+            <if test="state !=null and state !=''">
+                and b.state=#{state}
+            </if>
+            <if test="channelId !=null and channelId !=''">
+                and b.channel_id=#{channelId}
+            </if>
+            <if test="code !=null and code !=''">
+                and b.code like concat('%',concat(#{code},'%'))
+            </if>
+            <if test="businessCounterpart !=null and businessCounterpart !=''">
+                and u.business_counterpart like concat('%',concat(#{businessCounterpart},'%'))
+            </if>
+            <if test="channelType !=null and channelType !=''">
+                and u.channel_type=#{channelType}
+            </if>
+        </where>
+
+
+    </select>
+
+
+    <select id="getDistributorBaseBy" parameterType="Long"
+            resultType="cn.enn.wise.ssop.api.promotions.dto.response.DistributorBaseDTO">
+        SELECT
+
+        b.id,b.distributor_name,b.scenic_id,b.code, b.scenic_name,b.city_id,b.city_name,b.area_id,b.area_name,b.channel_id,b.channel_name,b.distributor_type,b.state,
+        b.verify_state,b.remark,c.channel_type,ba.scenic_name as parentScenicName,b.parent_id,b.verify_type,b.edit_step
+
+        FROM distributor_base b
+        LEFT JOIN distributor_base ba on ba.id=b.parent_id
+        LEFT JOIN channel c on b.channel_id=c.id
+        where b.isdelete=1 and  b.id= #{id}
+
+    </select>
+
+
+</mapper>

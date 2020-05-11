@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.platform.mall.mapper.ProdCommMapper">
+
+    <select id="getCommentList" resultType="cn.enn.wise.platform.mall.bean.vo.ProjectCommentVo">
+        select id,project_id,order_id,user_id,
+               content,rec_time,score,status,evaluate,prod_comm_label
+        from product_comment where project_id = #{projectId} order by rec_time desc
+
+    </select>
+
+    <select id="findCommentList" resultType="cn.enn.wise.platform.mall.bean.vo.ProdCommVo">
+        SELECT
+        pc.id,
+        pc.order_id,
+        pc.content,
+        pc.rec_time,
+        pc.score,
+        pc.STATUS,
+        pc.evaluate,
+        pc.prod_comm_label,
+        o.goods_Id,o.goods_name,o.name
+        FROM
+        product_comment pc
+        LEFT JOIN orders o ON pc.order_id = o.order_code
+        WHERE 1=1
+        <if test="prodCommParam.orderId != null and prodCommParam.orderId !='' ">
+            AND
+            pc.order_id LIKE '%${prodCommParam.orderId}%'
+        </if>
+
+        <if test="prodCommParam.score != null and prodCommParam.score !='' ">
+            AND
+            pc.score LIKE '%${prodCommParam.score}%'
+        </if>
+
+        <if test="prodCommParam.name != null and prodCommParam.name !='' ">
+            AND
+            o.name LIKE '%${prodCommParam.name}%'
+        </if>
+        ORDER BY pc.rec_time DESC
+    </select>
+
+</mapper>

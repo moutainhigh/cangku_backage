@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.platform.mall.mapper.GoodsProjectPeriodMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.enn.wise.platform.mall.bean.bo.GoodsProjectPeriod">
+        <id column="id" property="id" />
+        <result column="project_id" property="projectId" />
+        <result column="title" property="title" />
+        <result column="start_time" property="startTime" />
+        <result column="end_time" property="endTime" />
+        <result column="create_time" property="createTime" />
+        <result column="create_user_id" property="createUserId" />
+        <result column="create_user_name" property="createUserName" />
+        <result column="update_time" property="updateTime" />
+        <result column="update_user_id" property="updateUserId" />
+        <result column="update_user_name" property="updateUserName" />
+        <result column="orderby" property="orderby" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, project_id, title, start_time, end_time, create_time, create_user_id, create_user_name, update_time, update_user_id, update_user_name, orderby
+    </sql>
+
+    <!-- 获取所有时段 -->
+    <select id="selectPeriodList"  resultType="cn.enn.wise.platform.mall.bean.bo.GoodsProjectPeriod">
+        SELECT id,
+            project_id,
+            title,
+            start_time,
+            end_time,
+            create_time,
+            create_user_id,
+            create_user_name,
+            update_time,
+            update_user_id,
+            update_user_name,
+            orderby
+        FROM goods_project_period
+        where project_id=#{projectId}
+        order by orderby asc
+    </select>
+
+    <select id="selectPeriodByProjectId"  resultType="cn.enn.wise.platform.mall.bean.bo.GoodsProjectPeriod">
+        SELECT id,
+            project_id,
+            title,
+            start_time,
+            end_time,
+            create_time,
+            create_user_id,
+            create_user_name,
+            update_time,
+            update_user_id,
+            update_user_name,
+            orderby
+        FROM goods_project_period
+        where project_id=#{projectId} and status=1
+        order by orderby asc
+    </select>
+
+    <!-- 获取所有时段飞行概率 -->
+    <select id="selectPeriodListByDate" resultType="cn.enn.wise.platform.mall.bean.bo.OperationPeriodBo">
+
+        set @dateStr=#{date};
+        select
+        gpo.id,
+        gpp.title,
+        gpo.status,
+        case  gpo.status
+        when 1 then '正常'
+        when 2 then '停飞'
+        else '未知' end statusTxt,
+        gpo.probability
+        from goods_project_operation gpo
+        inner join goods_project_period gpp on gpo.period_id =gpp.id
+        where left(operation_date,10) = left(@dateStr,10) and service_place_id=#{placeId}
+    </select>
+
+    <select id="selectMinPriceByProjectId" resultType="Map">
+        select min(tmp.price) as price ,
+               min(tmp.distributionPrice) as  distributionPrice
+        from (
+                 SELECT
+                     min(ge.sale_price)  price,
+                     min(g.retail_price)  distributionPrice
+                 FROM
+                     goods  g
+
+                         left join goods_extend ge on g.id = ge.goods_id
+                         inner join goods_project_period gpp on gpp.id = ge.period_id
+                 where
+                     g.goods_status = 1 and g.is_by_period_operation  =1  and
+                     ge.status=1
+                   and gpp.status=1
+                   and gpp.project_id = #{projectId}
+                 union
+                 SELECT
+                     min(ge.sale_price)  price,
+                     min(g.retail_price)  distributionPrice
+                 FROM
+                     goods  g
+
+                         left join goods_extend ge on g.id = ge.goods_id
+                 where
+                     g.goods_status = 1 and g.is_by_period_operation  =2 and
+                     ge.status=1
+                   and g.project_id = #{projectId} ) tmp
+
+    </select>
+
+ <select id="selectMinPriceByProjectIdList" resultType="cn.enn.wise.platform.mall.bean.vo.MinPriceVo" parameterType="list">
+     select
+     tmp.project_id,
+     min(tmp.price) as minPrice ,
+     min(tmp.distributionPrice) as  minDistributePrice
+     from (
+     SELECT
+     g.project_id,
+     min(ge.sale_price)  price,
+     min(g.retail_price)  distributionPrice
+     FROM
+     goods  g
+
+     left join goods_extend ge on g.id = ge.goods_id
+     inner join goods_project_period gpp on gpp.id = ge.period_id
+     where
+     g.goods_status = 1 and g.is_by_period_operation  =1  and
+     ge.status=1
+     and gpp.status=1
+     and gpp.project_id in
+
+     <foreach collection="list" item="id" index="index"
+              open="(" close=")" separator=",">
+         #{id}
+     </foreach>
+
+     group by g.project_id
+     union
+     SELECT
+     g.project_id,
+     min(ge.sale_price)  price,
+     min(g.retail_price)  distributionPrice
+     FROM
+     goods  g
+
+     left join goods_extend ge on g.id = ge.goods_id
+     where
+     g.goods_status = 1 and g.is_by_period_operation  =2 and
+     ge.status=1
+     and g.project_id in
+
+     <foreach collection="list" item="id" index="index"
+              open="(" close=")" separator=",">
+         #{id}
+     </foreach>
+
+     group by g.project_id
+     ) tmp
+     where tmp.project_id is not null
+     group by tmp.project_id
+    </select>
+
+    <select id="getProjectAppointment" resultType="map">
+        SELECT DISTINCT
+            gpp.id,
+            gpp.start_time
+        FROM
+            goods_project_period gpp
+                INNER JOIN goods_project_operation gpo ON gpo.period_id = gpp.id
+        WHERE
+            gpp.project_id = #{projectId}
+          AND gpo.`status` IN (0, 1)
+          AND gpo.operation_date = #{operationDate}
+          AND gpp.`status` = 1
+          AND gpp.start_time > #{ctime}
+        ORDER BY
+            start_time ASC
+        LIMIT 1
+
+    </select>
+
+
+
+</mapper>

@@ -1,0 +1,273 @@
+server:
+  port: 9013
+  servlet:
+    context-path: /mall-v1
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:9001/eureka/
+#      defaultZone: http://dev-eureka:9004/eureka/
+#      defaultZone: http://test-eureka:9006/eureka/
+#      defaultZone: http://prod-master:9001/eureka/,http://prod-backup:9002/eureka/
+spring:
+  application:
+    name: wise.platform.mall
+  rabbitmq:
+    host: 10.38.128.83
+    port: 5672
+    username: tx
+    password: tx
+    publisher-confirms: true
+    publisher-returns: true
+    listener:
+      simple:
+        acknowledge-mode: manual
+        concurrency: 1
+        max-concurrency: 1
+        retry:
+          enabled: true
+    virtual-host: tx
+  redis:
+    host: 10.38.128.204
+    port: 6379
+    timeout: 60s
+    database: 1
+    lettuce:
+      pool:
+        max-active: 200
+        max-idle: 20
+        min-idle: 5
+        max-wait: -1
+
+  datasource:
+    name: mysqlDataSource
+    type: com.alibaba.druid.pool.DruidDataSource
+    schema: classpath:/data_script/mall.sql
+    initialization-mode: ALWAYS
+    continue-on-error: true
+    sql-script-encoding: utf-8
+    # druid相关
+    druid:
+      name: mysqlDataSource
+      filters: stat
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://10.38.128.81:3306/nxj_mall?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&serverTimezone=CTT
+      username: guide
+      password: guide
+      #配置初始化大小/最小/最大
+      initial-size: 5
+      min-idle: 5
+      max-active: 500
+      #获取连接等待超时时间
+      max-wait: 60000
+      #间隔多久进行一次检测，检测需要关闭的空闲连接
+      time-between-eviction-runs-millis: 60000
+      #一个连接在池中最小生存的时间
+      min-evictable-idle-time-millis: 300000
+      validation-query: SELECT 'x'
+      test-while-idle: true
+      test-on-borrow: false
+      test-on-return: false
+      #打开PSCache，并指定每个连接上PSCache的大小。oracle设为true，mysql设为false。分库分表较多推荐设置为false
+      pool-prepared-statements: false
+      max-pool-prepared-statement-per-connection-size: 20
+      web-stat-filter.enabled: false
+  jackson:
+    time-zone: GMT+8
+  data:
+    elasticsearch:
+      cluster-name: elasticsearch
+      cluster-nodes: localhost:9300
+    mongodb:
+      host: 10.38.128.83
+      port: 27017
+      database: admin
+mybatis:
+  table:
+    auto: update
+  database:
+    type: mysql
+  model:
+    pack: cn.enn.wise.platform.mall.bean.bo.autotable
+  mapper-locations: classpath*:mapper/*Mapper.xml,com/gitee/sunchenbin/mybatis/actable/mapping/*/*.xml
+  type-aliases-package: cn.enn.wise.platform.distribute.bean
+mybatis-plus:
+  mapper-locations: classpath*:mapper/*Mapper.xml,com/gitee/sunchenbin/mybatis/actable/mapping/*/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+logging:
+  level:
+    org.springframework.data.mongodb.core: debug
+  file: mall.log
+
+
+#自定义
+wx:
+  miniapp:
+    configs:
+      - appid: wx76453a21da3fe5b3
+        secret: 6ad61553799a531009b39f4bc6787a4a
+        token:
+        aesKey:
+        msgDataFormat: JSON
+      - appid: wx73466b979c886373
+        secret: 14bbded952712e3dab5818b1019c6f65
+        token:
+        aesKey:
+        msgDataFormat: JSON
+      - appid: wxc545473f261825b0
+        secret: aaf4e6715e592827da020563082c8113
+        token:
+        aesKey:
+        msgDataFormat: JSON
+
+TOKEN_SERVICE_URL: http://tx.enn.cn/member-v1/login/getUserByToken
+
+companyId: 13
+# Http调用配置
+url:
+  hostprefix: http://tx.enn.cn/
+  distributeBasePath: distribute-v1
+  mallBasePath: mall-v1
+  memberBasePath: member-v1
+  bscPath: bsc-
+  dxgPath: dxg-
+  wzdPath: wzd-
+  nxjPath: nxj-
+urlconfig:
+  urlConfigBeans:
+    - companyId: 5
+      urlMap:
+        CHECKUSER_SERVICE_URL:  ${url.hostprefix}${url.dxgPath}${url.distributeBasePath}/distributeorder/checkuser
+        SAVEDISTRIBUTEORDER_SERVICE_URL:  ${url.hostprefix}${url.dxgPath}${url.distributeBasePath}/app/distribute/order/save
+        STAFF_TOKEN_URL:  ${url.hostprefix}${url.memberBasePath}/wisePlatform/getUserByToken
+        CHECK_STRATEGY_URL: ${url.hostprefix}${url.dxgPath}${url.distributeBasePath}/app/distribute/checkstrategyitem
+        UPDATE_STRATEGY_ITEM_BY_IS_SERVICE: ${url.hostprefix}${url.dxgPath}${url.distributeBasePath}/app/distribute/update/strategyitem/isservice
+        OPENID_SERVICE_URL: ${url.hostprefix}${url.memberBasePath}/wx/openid
+        scenic_service_url: ${url.hostprefix}/wzd-tourism-pandaro/encdata-pandaro/scenic/getCodes
+        getDistributeByUserId: ${url.hostprefix}/${url.dxgPath}${url.distributeBasePath}/distributor/getbyuserid
+        DISTRIBUTE_URL: ${url.hostprefix}${url.dxgPath}${url.distributeBasePath}
+        GET_GOODSID_BYROLEID: ${url.hostprefix}${url.dxgPath}${url.distributeBasePath}/distributor/role/goodsid
+        UPDATE_STRATEGY_ITEM: ${url.hostprefix}${url.dxgPath}${url.distributeBasePath}/app/distribute/strategy/update
+        GET_MEMBER_INFO_URL: ${url.hostprefix}${url.memberBasePath}/member/head/imgurl
+    - companyId: 7
+      urlMap:
+        CHECKUSER_SERVICE_URL:  ${url.hostprefix}${url.dxgPath}${url.distributeBasePath}/distributeorder/checkuser
+        SAVEDISTRIBUTEORDER_SERVICE_URL:  ${url.hostprefix}${url.dxgPath}${url.distributeBasePath}/app/distribute/order/save
+        STAFF_TOKEN_URL:  ${url.hostprefix}${url.memberBasePath}/wisePlatform/getUserByToken
+        CHECK_STRATEGY_URL: ${url.hostprefix}${url.dxgPath}${url.distributeBasePath}/app/distribute/checkstrategyitem
+        UPDATE_STRATEGY_ITEM_BY_IS_SERVICE: ${url.hostprefix}${url.dxgPath}${url.distributeBasePath}/app/distribute/update/strategyitem/isservice
+        OPENID_SERVICE_URL: ${url.hostprefix}${url.memberBasePath}/wx/openid
+        scenic_service_url: ${url.hostprefix}/wzd-tourism-pandaro/encdata-pandaro/scenic/getCodes
+        getDistributeByUserId: ${url.hostprefix}/${url.dxgPath}${url.distributeBasePath}/distributor/getbyuserid
+        DISTRIBUTE_URL: ${url.hostprefix}${url.dxgPath}${url.distributeBasePath}
+        GET_GOODSID_BYROLEID: ${url.hostprefix}${url.dxgPath}${url.distributeBasePath}/distributor/role/goodsid
+        UPDATE_STRATEGY_ITEM: ${url.hostprefix}${url.dxgPath}${url.distributeBasePath}/app/distribute/strategy/update
+        GET_MEMBER_INFO_URL: ${url.hostprefix}${url.memberBasePath}/member/head/imgurl
+    - companyId: 10
+      urlMap:
+        CHECKUSER_SERVICE_URL:  ${url.hostprefix}${url.bscPath}${url.distributeBasePath}/distributeorder/checkuser
+        SAVEDISTRIBUTEORDER_SERVICE_URL:  ${url.hostprefix}${url.bscPath}${url.distributeBasePath}/app/distribute/order/save
+        STAFF_TOKEN_URL:  ${url.hostprefix}${url.memberBasePath}/wisePlatform/getUserByToken
+        CHECK_STRATEGY_URL: ${url.hostprefix}${url.bscPath}${url.distributeBasePath}/app/distribute/checkstrategyitem
+        UPDATE_STRATEGY_ITEM_BY_IS_SERVICE: ${url.hostprefix}${url.bscPath}${url.distributeBasePath}/app/distribute/update/strategyitem/isservice
+        OPENID_SERVICE_URL: ${url.hostprefix}${url.memberBasePath}/wx/openid
+        scenic_service_url: ${url.hostprefix}/bsc-tourism-pandaro/encdata-pandaro/scenic/getCodes
+        getDistributeByUserId: ${url.hostprefix}/${url.bscPath}${url.distributeBasePath}/distributor/getbyuserid
+        DISTRIBUTE_URL: ${url.hostprefix}${url.bscPath}${url.distributeBasePath}
+        GET_GOODSID_BYROLEID: ${url.hostprefix}${url.bscPath}${url.distributeBasePath}/distributor/role/goodsid
+        UPDATE_STRATEGY_ITEM: ${url.hostprefix}${url.bscPath}${url.distributeBasePath}/app/distribute/strategy/update
+        GET_MEMBER_INFO_URL: ${url.hostprefix}${url.memberBasePath}/member/head/imgurl
+    - companyId: 11
+      urlMap:
+        CHECKUSER_SERVICE_URL:  ${url.hostprefix}${url.wzdPath}${url.distributeBasePath}/distributeorder/checkuser
+        SAVEDISTRIBUTEORDER_SERVICE_URL:  ${url.hostprefix}${url.wzdPath}${url.distributeBasePath}/app/distribute/order/save
+        STAFF_TOKEN_URL:  ${url.hostprefix}${url.memberBasePath}/wisePlatform/getUserByToken
+        CHECK_STRATEGY_URL: ${url.hostprefix}${url.wzdPath}${url.distributeBasePath}/app/distribute/checkstrategyitem
+        UPDATE_STRATEGY_ITEM_BY_IS_SERVICE: ${url.hostprefix}${url.wzdPath}${url.distributeBasePath}/app/distribute/update/strategyitem/isservice
+        OPENID_SERVICE_URL: ${url.hostprefix}${url.memberBasePath}/wx/openid
+        scenic_service_url: ${url.hostprefix}/wzd-tourism-pandaro/encdata-pandaro/scenic/getCodes
+        getDistributeByUserId: ${url.hostprefix}/${url.wzdPath}${url.distributeBasePath}/distributor/getbyuserid
+        DISTRIBUTE_URL: ${url.hostprefix}${url.wzdPath}${url.distributeBasePath}
+        GET_GOODSID_BYROLEID: ${url.hostprefix}${url.wzdPath}${url.distributeBasePath}/distributor/role/goodsid
+        UPDATE_STRATEGY_ITEM: ${url.hostprefix}${url.wzdPath}${url.distributeBasePath}/app/distribute/strategy/update
+        GET_MEMBER_INFO_URL: ${url.hostprefix}${url.memberBasePath}/member/head/imgurl
+        GET_PROJECT_INFO_LIST: http://tx.enn.cn/wzd-tourism-pandaro/info/findActInfoListByTicketIdList
+        GET_PROJECT_INFO: http://tx.enn.cn/wzd-tourism-pandaro/info/findActInfoByTicketId
+    - companyId: 13
+      urlMap:
+        CHECKUSER_SERVICE_URL:  ${url.hostprefix}${url.nxjPath}${url.distributeBasePath}/distributeorder/checkuser
+        SAVEDISTRIBUTEORDER_SERVICE_URL:  ${url.hostprefix}${url.nxjPath}${url.distributeBasePath}/app/distribute/order/save
+        STAFF_TOKEN_URL:  ${url.hostprefix}${url.memberBasePath}/wisePlatform/getUserByToken
+        CHECK_STRATEGY_URL: ${url.hostprefix}${url.nxjPath}${url.distributeBasePath}/app/distribute/checkstrategyitem
+        UPDATE_STRATEGY_ITEM_BY_IS_SERVICE: ${url.hostprefix}${url.nxjPath}${url.distributeBasePath}/app/distribute/update/strategyitem/isservice
+        OPENID_SERVICE_URL: ${url.hostprefix}${url.memberBasePath}/wx/openid
+        scenic_service_url: ${url.hostprefix}/nxj-tourism-pandaro/encdata-pandaro/scenic/getCodes
+        getDistributeByUserId: ${url.hostprefix}/${url.nxjPath}${url.distributeBasePath}/distributor/getbyuserid
+        DISTRIBUTE_URL: ${url.hostprefix}${url.nxjPath}${url.distributeBasePath}
+        GET_GOODSID_BYROLEID: ${url.hostprefix}${url.nxjPath}${url.distributeBasePath}/distributor/role/goodsid
+        UPDATE_STRATEGY_ITEM: ${url.hostprefix}${url.nxjPath}${url.distributeBasePath}/app/distribute/strategy/update
+        GET_MEMBER_INFO_URL: ${url.hostprefix}${url.memberBasePath}/member/head/imgurl
+        GET_PROJECT_INFO_LIST: http://tx.enn.cn/nxj-tourism-pandaro/info/findActInfoListByTicketIdList
+        GET_PROJECT_INFO: http://tx.enn.cn/nxj-tourism-pandaro/info/findActInfoByTicketId
+
+# 小程序授权登录配置
+wxpay:
+  wxPayConfig:
+    # 西藏大峡谷小程序配置
+    -  companyId: 5
+       appId: wx73466b979c886373
+       mchId: 1504256541
+       key: 849f35d652f825eb7028369517ee1f87
+       tradeType: JSAPI
+       notifyUrl: http://tx.enn.cn/dxg-mall-v1/orders/wzd/complate
+    -  companyId: 7
+       appId: wx73466b979c886373
+       mchId: 1504256541
+       key: 849f35d652f825eb7028369517ee1f87
+       tradeType: JSAPI
+       notifyUrl: http://tx.enn.cn/dxg-mall-v1/orders/wzd/complate
+    # 涠洲岛小程序配置
+    -  companyId: 11
+       appId: wx76453a21da3fe5b3
+      #mchId: 1325029701
+       mchId: 1559222021
+      #       key: 91b147c700de21a6163ed68833903dd9
+       key: 26b8a138d04a52631ba21e43e6e2b0e9
+       tradeType: JSAPI
+       notifyUrl: http://tx.enn.cn/wzd-mall-v1/orders/wzd/complate
+  # 涠洲岛船票支付商户主体
+    -  companyId: 101
+       appId: wx76453a21da3fe5b3
+       mchId: 1325029701
+#       mchId: 1559222021
+       key: 91b147c700de21a6163ed68833903dd9
+#       key: 26b8a138d04a52631ba21e43e6e2b0e9
+       tradeType: JSAPI
+       notifyUrl: http://tx.enn.cn/wzd-mall-v1/orders/wzd/complate/ticket
+    # 巴松措小程序配置
+    - companyId: 10
+      appId: wxc545473f261825b0
+      mchId: 1528261671
+      key: Xzlybsc600792019Xzlybsc600792019
+      tradeType: JSAPI
+      notifyUrl: http://tx.enn.cn/bsc-mall-v1/orders/wzd/complate
+  # 楠溪江小程序配置
+    - companyId: 13
+      appId: wx17727d2732e03351
+      mchId: 1510696711
+      key: ySEXoJBkZ8wurAQc6pJjzXRiK9nD6YR2
+      tradeType: JSAPI
+      notifyUrl: http://tx.enn.cn/nxj-mall-v1/orders/wzd/complate
+
+# 队列配置
+queueconfig:
+  prefix: nxj.
+
+audit:
+  phone: 15011246078
+  name: 石斋
+  h5url: /mall-audith5/#/withdrawal
+  refundH5Url: /mall-audith5/#/refund
+
+

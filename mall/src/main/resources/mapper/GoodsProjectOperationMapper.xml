@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.enn.wise.platform.mall.mapper.GoodsProjectOperationMapper">
+
+    <select id="selectOperationListByDate" resultType="cn.enn.wise.platform.mall.bean.bo.OperationBo">
+        set @dateStr=#{date};
+        SELECT
+        ge.timespan title,
+        ge.probability,
+        ge.status,
+        ge.service_place_id servicePlaceId,
+        ge.period_id periodId,
+        ifnull(t.ct,0) bookingCount,
+        ifnull(tt.ct,0) completeCount,
+        ifnull( sum(convert(5*(ge.duration/30)*2,SIGNED)),0) fullCount,
+        ge.degree_of_influence
+        FROM
+        (
+        select
+        pd.title timespan,ttt.probability,ttt.status,ttt.service_place_id,ttt.id tid,ttt.period_id,ttt.degree_of_influence,(select max(duration)
+        from goods_extend where period_id=ttt.period_id) duration,pd.orderby
+        from goods_project_period pd
+        inner join (select * from goods_project_operation where operation_date=@dateStr) ttt on ttt.period_id=pd.id
+        where pd.status!=3
+        ) ge
+        LEFT JOIN
+        (
+        SELECT
+        SUM(os.max_number_of_users*os.amount) ct, ex.timespan
+        FROM
+        orders os
+        INNER JOIN (select pd.title timespan ,ex.id,ex.goods_id from goods_project_period pd inner join goods_extend ex
+        on ex.period_id = pd.id) ex ON ex.id = os.goods_id
+        INNER JOIN goods gd ON gd.id = ex.goods_id
+        WHERE  os.order_type=1 and
+        state in (2,3,9,10) and pay_status=2 AND LEFT(@dateStr, 10)= left(os.enter_time,10)
+        GROUP BY ex.timespan
+        ) t ON t.timespan = ge.timespan
+        LEFT JOIN
+        (
+        SELECT
+        SUM(os.max_number_of_users*os.amount) ct, ex.timespan
+        FROM
+        orders os
+        INNER JOIN (select pd.title timespan ,ex.id,ex.goods_id from goods_project_period pd inner join goods_extend ex
+        on ex.period_id = pd.id) ex ON ex.id = os.goods_id
+        INNER JOIN goods gd ON gd.id = ex.goods_id
+        WHERE  os.order_type=1 and
+        state in (3,9) AND pay_status=2 AND LEFT(@dateStr, 10)= left(os.enter_time,10)
+        GROUP BY ex.timespan
+        ) tt ON tt.timespan = ge.timespan
+        where ge.service_place_id=#{placeId}
+        group by ge.timespan
+        order by ge.orderby
+    </select>
+
+
+    <select id="selectOperationListByDateV2" resultType="cn.enn.wise.platform.mall.bean.bo.OperationBo">
+        set @dateStr=#{date};
+        SELECT
+        ge.timespan title,
+        ge.probability,
+        ge.status,
+        ge.service_place_id servicePlaceId,
+        ge.period_id periodId,
+        ifnull(t.ct,0) bookingCount,
+        ifnull(tt.ct,0) completeCount,
+        ifnull( sum(convert(5*(ge.duration/30)*2,SIGNED)),0) fullCount,
+         ge.degree_of_influence degreeOfInfluence
+        FROM
+        (
+        select
+        pd.project_id projectId,pd.title timespan,ttt.probability,ttt.status,ttt.degree_of_influence,ttt.service_place_id,ttt.id
+        tid,ttt.period_id,(select max(duration) from goods_extend where period_id=ttt.period_id) duration,pd.orderby
+        from goods_project_period pd
+        inner join (select * from goods_project_operation where operation_date=@dateStr) ttt on ttt.period_id=pd.id
+        where pd.status!=3 and pd.project_id = #{projectId}
+        ) ge
+        LEFT JOIN
+        (
+        SELECT
+        SUM(os.max_number_of_users*os.amount) ct, ex.timespan
+        FROM
+        orders os
+        INNER JOIN (select pd.title timespan ,ex.id,ex.goods_id from goods_project_period pd inner join goods_extend ex
+        on ex.period_id = pd.id where pd.project_id=#{projectId}) ex ON ex.id = os.goods_id
+        INNER JOIN goods gd ON gd.id = ex.goods_id
+        WHERE  os.order_type=1 and
+        state in (2,3,9,10) and pay_status=2 AND LEFT(@dateStr, 10)= left(os.enter_time,10)
+        GROUP BY ex.timespan
+        ) t ON t.timespan = ge.timespan
+        LEFT JOIN
+        (
+        SELECT
+        SUM(os.max_number_of_users*os.amount) ct, ex.timespan
+        FROM
+        orders os
+        INNER JOIN (select pd.title timespan ,ex.id,ex.goods_id from goods_project_period pd inner join goods_extend ex
+        on ex.period_id = pd.id where pd.project_id = #{projectId}) ex ON ex.id = os.goods_id
+        INNER JOIN goods gd ON gd.id = ex.goods_id
+        WHERE  os.order_type=1 and
+        state in (3,9) AND pay_status=2 AND LEFT(@dateStr, 10)= left(os.enter_time,10)
+        GROUP BY ex.timespan
+        ) tt ON tt.timespan = ge.timespan
+        where ge.service_place_id=#{placeId} and ge.projectId =#{projectId}
+        group by ge.timespan
+        order by ge.orderby
+    </select>
+    <select id="selectRealTimeOperationList" parameterType="Date"
+            resultType="cn.enn.wise.platform.mall.bean.vo.GoodsOperationPeriodVo">
+        select tt.*
+        from (
+        select
+        gpo.period_title,
+        gpo.period_id,
+        gpo.status,
+        gpo.remark,
+        gpo.probability,
+        gpo.degree_of_influence degreeOfInfluence,
+        service_place_id,
+        gpp.orderby,
+        (
+        select sum(o.max_number_of_users*o.amount) maxNum
+        from orders o inner join goods_extend ge on o.goods_id = ge.id
+        where left(enter_time,10)=left(#{operationDate},10)
+        and period_id =gpp.id
+        and o.state in (2,3,9,10)
+        and o.pay_status=2
+        ) hot
+
+        from goods_project_operation gpo
+        inner join goods_project_period gpp on gpp.id = gpo.period_id
+        where left(operation_date,10)=left(#{operationDate},10) and concat(operation_date,' ',gpp.end_time,':00') >now()
+        order by service_place_id asc,gpp.orderby asc
+        ) tt
+        inner join ( select * from goods_project_period where status=1) gpp on gpp.id=tt.period_id
+        order by orderby asc;
+    </select>
+
+    <select id="selectRealTimeOperationListV2" resultType="cn.enn.wise.platform.mall.bean.vo.GoodsOperationPeriodVo">
+        select tt.*
+        from (
+        select
+        gpo.period_title,
+        gpo.period_id,
+        gpo.status,
+        gpo.remark,
+        gpo.probability,
+        gpo.degree_of_influence degreeOfInfluence,
+        service_place_id,
+        gpp.orderby,
+        (
+        select sum(o.max_number_of_users*o.amount) maxNum
+        from orders o inner join goods_extend ge on o.goods_id = ge.id
+        where o.order_type=1 and left(enter_time,10)=left(#{operationDate},10)
+        and period_id =gpp.id
+        and o.state in (2,3,9,10)
+        and o.pay_status=2
+        ) hot,
+        ttt.name projectName,
+        ttt.placeName,
+        ttt.placeId
+
+        from goods_project_operation gpo
+        inner join goods_project_period gpp on gpp.id = gpo.period_id
+        inner join (SELECT sp.id placeId,sp.service_place_name placeName,gp.id projectId,gp.name FROM goods_project gp
+        inner join service_place sp on (INSTR( concat(',',gp.service_place_id,','),concat(',',sp.id,","))) where
+        gp.id=#{projectId} ) ttt on ttt.placeId=gpo.service_place_id
+        where left(operation_date,10)=left(#{operationDate},10) and concat(operation_date,' ',gpp.end_time,':00') >now()
+        order by service_place_id asc,gpp.orderby asc
+        ) tt
+        inner join ( select * from goods_project_period where status=1 and project_id=#{projectId}) gpp on
+        gpp.id=tt.period_id
+        order by service_place_id desc, orderby asc;
+    </select>
+
+    <select id="selectTheNextThreeDaysOperationList" parameterType="Date"
+            resultType="cn.enn.wise.platform.mall.bean.bo.GoodsProjectOperationBo">
+        SELECT id,
+        period_id,
+        service_place_id,
+        operation_date,
+        period_title,
+        probability,
+        `status`,
+        remark,
+        create_time,
+        create_user_id,
+        create_user_name,
+        update_time,
+        update_user_id,
+        update_user_name
+        FROM goods_project_operation
+        where operation_date>=left(#{operationDate},10);
+
+    </select>
+
+    <select id="selectTheNextThreeDaysOperationProjectList" parameterType="Date"
+            resultType="cn.enn.wise.platform.mall.bean.bo.GoodsProjectOperationExtendBo">
+        SELECT gpo.id,
+        gpo.period_id,
+        gpo.service_place_id,
+        gpo.operation_date,
+        gpo.period_title,
+        gpo.probability,
+        gpo.`status`,
+        gpo.remark,
+        gpo.create_time,
+        gpo.create_user_id,
+        gpo.create_user_name,
+        gpo.update_time,
+        gpo.update_user_id,
+        gpo.update_user_name,
+        gp.id projectId,
+        gp.name projectName
+        FROM goods_project_operation gpo
+        inner join goods_project_period gpp on gpp.id=gpo.period_id
+        inner join goods_project gp on gp.id =gpp.project_id
+        where operation_date>=left(#{operationDate},10);
+
+    </select>
+
+    <select id="selectByTime" resultType="cn.enn.wise.platform.mall.bean.bo.GoodsProjectOperationBo">
+
+        SELECT
+        gpo.*
+        FROM
+        goods_project_operation gpo
+        inner join goods_project_period gpp on gpp.id=gpo.period_id
+        where
+        gpo.operation_date=left(now(),10)
+        and (
+        concat(operation_date,' ',gpp.start_time,':00')>= #{startTime} and concat(operation_date,'
+        ',gpp.start_time,':00') &lt;= #{endTime}
+        and
+        concat(operation_date,' ',gpp.end_time,':00')>= #{startTime} and concat(operation_date,' ',gpp.end_time,':00')
+        &lt;= #{endTime}
+        )
+        and gpo.service_place_id =#{placeId}
+        and gpp.status !=3
+    </select>
+
+    <select id="selectByPeriod" resultType="cn.enn.wise.platform.mall.bean.bo.GoodsProjectOperationBo">
+        SELECT
+        gpo.*
+        FROM
+        goods_project_operation gpo
+        inner join goods_project_period gpp on gpp.id=gpo.period_id
+        where
+        gpo.operation_date=left(now(),10)
+        and gpp.id = #{id}
+        and gpo.service_place_id =#{placeId}
+        and gpp.status !=3
+    </select>
+
+    <select id="selectProjectByPeriod" resultType="cn.enn.wise.platform.mall.bean.bo.GoodsProjectOperationProjectBo">
+        SELECT
+        gpo.*,gp.id projectId,gp.name projectName
+        FROM
+        goods_project_operation gpo
+        inner join goods_project_period gpp on gpp.id=gpo.period_id
+        inner join goods_project gp on gp.id = gpp.project_id
+        where
+        gpo.operation_date=left(now(),10)
+        and gpp.id = #{id}
+        and gpo.service_place_id =#{placeId}
+        and gpp.status !=3
+    </select>
+
+    <select id="selectPlaceNameById" resultType="java.lang.String">
+
+        SELECT
+        service_place_name
+        FROM
+        service_place
+        where
+        id =#{placeId}
+
+    </select>
+    <select id="selectWeatherList" resultType="Map">
+        SELECT id,windp,forecast,humidity FROM weather_sun where city_code=#{cityCode} order by id desc limit 1
+    </select>
+
+
+    <update id="calculationReport">
+
+        SET SQL_SAFE_UPDATES = 0;
+        update sys_ticket_report
+        left join (SELECT
+        ifnull(SUM(gd.max_num*os.amount),0) ct,left(os.create_time,10) dt
+        FROM
+        orders os
+        INNER JOIN (select pd.title timespan ,ex.id,ex.goods_id from goods_project_period pd inner join goods_extend ex
+        on ex.period_id = pd.id) ex ON ex.id = os.goods_id
+        INNER JOIN goods gd ON gd.id = ex.goods_id
+        WHERE
+        state in (2,3,9,10) AND pay_status=2 group by left(os.create_time,10)) t on t.dt = sys_ticket_report.report_date
+        left join (SELECT
+        ifnull(SUM(gd.max_num*os.amount),0) ct,left(os.create_time,10) dt
+        FROM
+        orders os
+        INNER JOIN (select pd.title timespan ,ex.id,ex.goods_id from goods_project_period pd inner join goods_extend ex
+        on ex.period_id = pd.id) ex ON ex.id = os.goods_id
+        INNER JOIN goods gd ON gd.id = ex.goods_id
+        WHERE
+        state in (3,9) AND pay_status=2 group by left(os.create_time,10)) tt on tt.dt =sys_ticket_report.report_date
+        set
+        order_count=ifnull(t.ct,0),
+        order_finish_count=ifnull(tt.ct,0),
+        order_percent=if(ifnull(scans_count,0)=0,0, convert( (ifnull(t.ct,0)/scans_count)*100,decimal(10,2))),
+        order_finish_percent=if(ifnull(t.ct,0)=0,0, convert((ifnull(tt.ct,0)/ifnull(t.ct,0))*100,decimal(10,2)))
+        where order_count is null and report_date &lt;=left(now(),10);
+    </update>
+
+
+    <update id="updateStatusBatch">
+        UPDATE goods_project_operation
+        SET
+        STATUS = #{status},
+        update_time = SYSDATE( ),
+        update_user_id = #{user.id},
+        update_user_name = #{user.name},
+        <if test="probability != 0">
+            probability = #{probability},
+        </if>
+        <if test="degreeOfInfluence != null and degreeOfInfluence != ''">
+            degree_of_influence = #{degreeOfInfluence},
+        </if>
+        remark = #{remark}
+        WHERE
+        service_place_id = #{servicePlaceId}
+        AND operation_date = #{date}
+        AND period_id IN (SELECT id FROM goods_project_period WHERE project_id = #{projectId})
+    </update>
+</mapper>

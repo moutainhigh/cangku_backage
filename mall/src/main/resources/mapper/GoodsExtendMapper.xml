@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.platform.mall.mapper.GoodsExtendMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.enn.wise.platform.mall.bean.bo.GoodsExtend">
+        <id column="id" property="id" />
+        <result column="goods_id" property="goodsId" />
+        <result column="timespan" property="timespan" />
+        <result column="orderby" property="orderby" />
+        <result column="sale_price" property="salePrice" />
+        <result column="max_num" property="maxNum" />
+        <result column="create_time" property="createTime" />
+        <result column="create_user_id" property="createUserId" />
+        <result column="create_user_name" property="createUserName" />
+        <result column="update_time" property="updateTime" />
+        <result column="update_user_id" property="updateUserId" />
+        <result column="update_user_name" property="updateUserName" />
+        <result column="duration" property="duration" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, goods_id, timespan, orderby, sale_price, max_num, create_time, create_user_id, create_user_name, update_time, update_user_id, update_user_name, duration
+    </sql>
+
+
+    <!-- 航线选择 -->
+    <select id="getLine" resultType="cn.enn.wise.platform.mall.bean.vo.LineVo">
+        select distinct line_from,line_to from goods_extend where line_date = left(#{date},10);
+    </select>
+
+    <!-- 航线列表 -->
+    <select id="getLineTicket" resultType="cn.enn.wise.platform.mall.bean.vo.LineTicketVo">
+        SELECT DISTINCT
+            duration,
+            line_from,
+            line_to,
+            nick_name,
+            start_time,
+            end_time,
+            ship_line_info,
+            min(sale_price) price,
+            case
+            when timestampdiff(minute,now(),start_time)&lt;= 0 then '3'
+            when timestampdiff(minute,now(),start_time)> 30 then '1'
+            else '2' end  status
+        FROM
+            goods_extend
+        <where>
+
+            `status` = 1
+
+            <if test="date != null and date !='' ">
+                and line_date = #{date}
+            </if>
+            <if test="from != null and from !='' ">
+                and  line_from like CONCAT('%',#{from},'%')
+            </if>
+            <if test="to != null and to !='' ">
+                and  line_to like CONCAT('%',#{to},'%')
+            </if>
+        </where>
+        group by line_from,line_to,line_date,start_time,end_time,nick_name
+        <if test="order == 1 ">
+            order by start_time asc
+        </if>
+        <if test="order == 2 ">
+            order by start_time desc
+        </if>
+    </select>
+
+    <!-- 航线详情 -->
+    <select id="getLineTicketByTime" resultType="cn.enn.wise.platform.mall.bean.vo.LineTicketVo">
+        SELECT DISTINCT
+        duration,
+        line_from,
+        line_to,
+        nick_name,
+        start_time,
+        end_time,
+        ship_line_info,
+        min(sale_price) price
+        FROM
+        goods_extend
+        <where>
+            `status` = 1
+            <if test="date != null and date !='' ">
+                and line_date = #{date}
+            </if>
+            <if test="from != null and from !='' ">
+                and  line_from like CONCAT('%',#{from},'%')
+            </if>
+            <if test="to != null and to !='' ">
+                and  line_to like CONCAT('%',#{to},'%')
+            </if>
+            <if test="startTime != null and startTime !='' ">
+                and  left(right(start_time,8),5) =#{startTime}
+            </if>
+            <if test="nickName != null and nickName !='' ">
+                and  nick_name =#{nickName}
+            </if>
+        </where>
+        group by line_from,line_to,line_date,nick_name
+    </select>
+
+    <!-- 船舱列表 -->
+    <select id="getCabinList" resultType="cn.enn.wise.platform.mall.bean.vo.LineCabinVo">
+        SELECT
+        cabin_name,
+        sale_price price,
+        ship_line_info,
+        cabin_name,
+        nick_name
+        FROM
+        goods_extend
+        <where>
+            `status` = 1
+            <if test="date != null and date !='' ">
+                and line_date = #{date}
+            </if>
+            <if test="from != null and from !='' ">
+                and  line_from like CONCAT('%',#{from},'%')
+            </if>
+            <if test="to != null and to !='' ">
+                and  line_to like CONCAT('%',#{to},'%')
+            </if>
+            <if test="startTime != null and startTime !='' ">
+                and left(right(start_time,8),5) =#{startTime}
+            </if>
+            <if test="nickName != null and nickName !='' ">
+                and  nick_name =#{nickName}
+            </if>
+        </where>
+        group by cabin_name
+    </select>
+
+
+    <select id="getCabinByShipName" resultType="cn.enn.wise.platform.mall.bean.bo.GoodsExtend">
+       SELECT
+            *
+        FROM
+            goods_extend ge
+        WHERE
+        ge.goods_id=1000 and
+            NOT EXISTS (
+                SELECT
+                    *
+                FROM
+                    cabin c
+                INNER JOIN ship sh ON c.ship_id = sh.id
+                WHERE
+                    ge.nick_name = sh.`name`
+                AND c.`name` = ge.cabin_name
+            )
+        AND ge.nick_name = #{shipName}
+        order by ge.cabin_name
+    </select>
+
+    <select id="getShipName" resultType="cn.enn.wise.platform.mall.bean.bo.GoodsExtend">
+       SELECT
+            DISTINCT(ge.nick_name)
+        FROM
+            goods_extend ge
+        WHERE
+        ge.goods_id=1000 and
+            ge.nick_name IS NOT NULL
+            AND NOT EXISTS (
+                SELECT
+                    *
+                FROM
+                    ship sh
+                WHERE
+                    ge.nick_name = sh.`name`
+            )
+    </select>
+    <select id="getCabin" resultType="cn.enn.wise.platform.mall.bean.bo.GoodsExtend">
+       SELECT
+            ge.nick_name,
+            ge.cabin_name
+        FROM
+            goods_extend ge
+        WHERE
+        ge.goods_id=1000 and
+            NOT EXISTS (
+                SELECT
+                    *
+                FROM
+                    cabin c
+                INNER JOIN ship sh ON c.ship_id = sh.id
+                WHERE
+                    ge.nick_name = sh.`name`
+                AND c.`name` = ge.cabin_name
+            )
+        AND ge.nick_name IS NOT NULL
+        GROUP BY
+            ge.nick_name,
+            ge.cabin_name
+        ORDER BY
+            ge.nick_name
+    </select>
+
+    <select id="selectIdsByWrapper" resultType="java.lang.Long">
+        select
+            id
+        from goods_extend
+        ${ew.customSqlSegment}
+    </select>
+
+    <select id="selectGoodsExtendIdUsable" resultType="java.lang.Long">
+        select id from goods_extend where goods_id=#{goodsId} and status='1'
+    </select>
+
+
+</mapper>

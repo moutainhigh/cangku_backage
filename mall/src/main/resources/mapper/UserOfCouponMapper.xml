@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.platform.mall.mapper.UserOfCouponMapper">
+
+
+
+
+    <select id="getNewPeopleCoupon"  resultType="java.util.Map">
+        SELECT
+            gcp.id promotionId,
+            gc.id coupnId,
+            gcr.id ruleId,
+            pac.id pacId,
+            gc.price,
+            gc.validity_time validityTime,
+            gc.`name`,
+            gcr.tag
+        FROM
+            goods_coupon_promotion gcp
+        INNER JOIN promotion_and_coupon pac ON pac.promotion_id = gcp.id
+        INNER JOIN goods_coupon gc ON gc.id = pac.goods_coupon_id
+        INNER JOIN goods_coupon_rule gcr ON gcr.id = gc.goods_coupon_rule_id
+        WHERE
+            gcp.company_id = #{companyId}
+        AND gcp.promotion_crowd_type = 2
+        AND gcp.promotion_crowd = 1
+        AND gcp.end_time > SYSDATE()
+        AND gcp.`status` = 2
+    </select>
+
+
+    <select id="getCouponInfo" resultType="cn.enn.wise.platform.mall.bean.vo.CouponInfoVo">
+        select
+               uoc.id,
+               uoc.user_id,
+               uoc.goods_coupon_id,
+               uoc.promotion_id,
+               uoc.validity_time,
+               uoc.`status`,
+               uoc.phone,
+               gc.`name`,
+               gc.coupon_type,
+               gc.price,
+               gc.status as goodsCouponStatus,
+               gcr.id as goodsCouponRuleId,
+               gcr.use_rule,
+               gcr.min_use,
+               gcr.is_overlay,
+               gcp.`status` as promotionStatus
+        from
+             user_of_coupon uoc
+                 inner join goods_coupon_promotion gcp on uoc.promotion_id = gcp.id
+                 inner join goods_coupon gc on uoc.goods_coupon_id = gc.id
+                 inner join goods_coupon_rule gcr on uoc.promotion_id=gcr.promotion_id and uoc.goods_coupon_id = gcr.goods_coupon_id
+
+        where
+                uoc.user_id=#{userId}
+          and uoc.id = #{id}
+
+    </select>
+    <update id="updateCouponState">
+        update user_of_coupon set `status` = #{status} where id= #{id}
+    </update>
+
+    <update id="updateCouponStateAndCouponPrice">
+        update user_of_coupon set `status` = #{status}, coupon_price =#{couponPrice},order_resource=1  where id= #{id}
+
+    </update>
+
+    <update id="updateExpiredCoupon">
+        update user_of_coupon set `status` = 3 where `status` = 1 and   SYSDATE()>validity_time
+    </update>
+
+    <update id="updateExpiredCouponByPromotion">
+            UPDATE user_of_coupon uoc1
+            SET uoc1.`status` = 3
+            WHERE
+                EXISTS (
+                    SELECT
+                        *
+                    FROM
+                        (
+                            SELECT
+                                uoc.id
+                            FROM
+                                goods_coupon_promotion gcp
+                            INNER JOIN goods_coupon_rule gcr ON gcp.id = gcr.promotion_id
+                            INNER JOIN user_of_coupon uoc ON uoc.goods_coupon_id = gcr.goods_coupon_id
+                            AND uoc.promotion_id = gcp.id
+                            WHERE
+                                gcp. STATUS IN (3, 4)
+                        ) uo
+                    WHERE
+                        uoc1.id = uo.id
+                )
+    </update>
+
+    <select id="selectCouponSizeByUserId"  resultType="java.lang.Integer">
+      select COUNT(1) from user_of_coupon where user_id=#{userId} and status=1 and phone =''
+    </select>
+
+    <select id="selectCouponSizeByUserIdAndPhone"  resultType="java.lang.Integer">
+      select COUNT(1) from user_of_coupon where user_id=#{userId} and status=1 and phone =#{phone}
+    </select>
+
+    <update id="updateSendCoupon">
+        update user_of_coupon set `status` = 1 ,update_time=SYSDATE() where status =4 and date_add(now(), Interval -12 hour)>update_time
+    </update>
+
+
+    <select id="getCouponStatus" resultType="map">
+        select uoc.id as id, uoc.user_id as userId,uoc.`status` as uocStatus,gcp.`status` as gcpStatus, gc.`status` as gcStatus
+        from
+             user_of_coupon uoc
+                 inner join goods_coupon_promotion gcp on uoc.promotion_id = gcp.id
+                 inner join goods_coupon gc on uoc.goods_coupon_id = gc.id
+
+        where uoc.id = #{id}
+          and uoc.user_id = #{userId}
+          and uoc.`status`= 2
+          and gcp.`status` =2
+          and gc.`status` = 1
+    </select>
+    <select id="getPrice" resultType="java.lang.Double">
+        select price from goods_coupon where id = #{goodsCouponId}
+    </select>
+    <select id="getCouInfoList" resultType="cn.enn.wise.platform.mall.bean.vo.CouInfo">
+        select u.id as id,g.price as price,u.coupon_price as couponPrice,u.status as status,
+        u.enter_time as enterTime
+         from user_of_coupon u left join goods_coupon g on u.goods_coupon_id=g.id
+         where u.status = 2 and u.business_id = #{businessId}
+         order by u.update_time desc
+    </select>
+    <select id="count" resultType="java.lang.String">
+        select count(0) from user_of_coupon where status = 2 and substr(enter_time,1,7)=#{time} and business_id =#{businessId}
+    </select>
+    <select id="totalPrice" resultType="java.lang.Double">
+        select sum(a.cou) from (
+        select u.goods_coupon_id,count(u.goods_coupon_id),g.price,count(u.goods_coupon_id)*g.price as cou from user_of_coupon u
+        left join goods_coupon g on u.goods_coupon_id=g.id
+        where u.status = 2 and substr(u.enter_time,1,7)=#{time} and u.business_id =#{businessId}
+        GROUP BY u.goods_coupon_id) as a
+    </select>
+    <select id="upPrice" resultType="java.lang.Double">
+        select sum(coupon_price) from orders where state in (2,3) and substr(enter_time,1,7 ) =#{time}
+    </select>
+    <select id="downPrice" resultType="java.lang.Double">
+        select sum(coupon_price) from user_of_coupon where status = 2 and substr(enter_time,1,7 ) =#{time}
+        and business_id =#{businessId}
+    </select>
+    <select id="finPrice" resultType="cn.enn.wise.platform.mall.bean.vo.CouVo">
+        select u.id as id,g.price as price,u.coupon_price as couponPrice,g.kind as kind
+        from user_of_coupon u LEFT JOIN goods_coupon g on u.goods_coupon_id=g.id
+        where u.`status` = 2 and substr(u.enter_time,1,7 ) =#{time}
+        and u.business_id =#{businessId}
+    </select>
+
+
+    <select id="findUserDrawCouponList" resultType="cn.enn.wise.platform.mall.bean.vo.DrawCouponVo">
+        SELECT
+        uoc.id infoId,
+        uoc.validity_time endTime,
+        uoc.goods_coupon_id,
+        uoc. STATUS couponSts,
+        uoc.open_id,
+        gc.remark,
+        gc.price couponPrice,
+        gc.kind,
+        gc.id
+    FROM
+        user_of_coupon uoc
+    INNER  JOIN goods_coupon gc ON uoc.goods_coupon_id = gc.id
+    WHERE open_id =#{openId}
+    </select>
+
+
+</mapper>

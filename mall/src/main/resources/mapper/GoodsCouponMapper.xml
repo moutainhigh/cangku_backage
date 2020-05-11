@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.platform.mall.mapper.GoodsCouponMapper">
+
+    <select id="getCouponCountList" resultType="cn.enn.wise.platform.mall.bean.vo.CouponCountVo">
+        select
+               case when gc.kind = 1 THEN '门票券'
+                    when gc.kind = 2 THEN '民宿券'
+                    when gc.kind = 3 THEN '餐饮券' else null end  as couponType,
+               count(1) as total,
+               count(case WHEN uoc.`status`=1 THEN 1 ELSE null END) as toBeUsed,
+               count(case WHEN uoc.`status`=2 THEN 1 ELSE null END) as used,
+               count(case WHEN uoc.`status`=3 THEN 1 ELSE null END) as expired
+
+        from user_of_coupon uoc
+        inner join goods_coupon gc on gc.id = uoc.goods_coupon_id
+        left join goods g on uoc.business_id = g.business_id
+        where 1=1
+            <if test="startDate != null and startDate != '' ">
+               and  uoc.create_time > #{startDate}
+            </if>
+            <if test="endDate != null and endDate != '' ">
+                and uoc.create_time &lt; #{endDate}
+            </if>
+        <if test="status != null and status != '' ">
+            and uoc.status = #{status}
+        </if>
+        <if test="kind != null and kind != '' ">
+            and gc.kind = #{kind}
+        </if>
+        <if test="couponNo != null and couponNo != ''">
+            and uoc.id like CONCAT('%',#{couponNo},'%')
+        </if>
+        <if test="userId != null and userId != ''">
+            and uoc.user_id = #{userId}
+        </if>
+        <if test="couponPrice != null">
+            and gc.price = #{couponPrice}
+        </if>
+        <if test="businessName!=null and businessName != ''">
+            and if(g.business_name is null, uoc.business_name,g.business_name) like CONCAT('%',#{businessName},'%')
+        </if>
+        group by gc.kind
+    </select>
+
+
+    <select id="getCouponPriceList" resultType="cn.enn.wise.platform.mall.bean.vo.CouponPriceVo">
+        select
+               case when gc.kind = 1 THEN '门票券'
+                    when gc.kind = 2 THEN '民宿券'
+                    when gc.kind = 3 THEN '餐饮券' else null end  as couponType,
+               sum(gc.price) as total,
+               sum(case when uoc.`status` = 1 then gc.price else 0  end) as toBeUsed,
+               sum(case when uoc.`status` = 2 then gc.price else 0  end) as used,
+               sum(case when uoc.`status` = 3 then gc.price else 0  end) as expired
+
+        from user_of_coupon uoc
+        inner join goods_coupon gc on gc.id = uoc.goods_coupon_id
+        left join goods g on uoc.business_id = g.business_id
+        where 1=1
+
+        <if test="startDate != null and startDate != ''">
+            and  uoc.create_time > #{startDate}
+        </if>
+        <if test="endDate != null and endDate != '' ">
+            and uoc.create_time &lt; #{endDate}
+        </if>
+        <if test="status != null and status != '' ">
+            and uoc.status = #{status}
+        </if>
+        <if test="kind != null and kind != '' ">
+            and gc.kind = #{kind}
+        </if>
+        <if test="couponNo != null and couponNo != ''">
+            and uoc.id like CONCAT('%',#{couponNo},'%')
+        </if>
+        <if test="userId != null and userId != ''">
+            and uoc.user_id = #{userId}
+        </if>
+        <if test="couponPrice != null">
+            and gc.price = #{couponPrice}
+        </if>
+        <if test="businessName!=null and businessName != ''">
+            and if(g.business_name is null, uoc.business_name,g.business_name) like CONCAT('%',#{businessName},'%')
+        </if>
+        group by gc.kind
+    </select>
+
+    <select id="getCouponCountItemList" resultType="cn.enn.wise.platform.mall.bean.vo.CouponItemCountVo">
+        -- 查询明细
+        select
+               uoc.id as couponNo,
+               uoc.user_id as userId,
+               case
+                   when uoc.`status` =1 then '待使用'
+                   when uoc.`status` =2 then '已使用'
+                   when uoc.`status` =3 then '已过期'
+                   else null end
+
+                as couponStatus,
+               uoc.create_time as createTime,
+               uoc.enter_time as checkTime,
+               case
+                   when uoc.order_resource  = 1
+                         then '线上'
+                   when uoc.order_resource  = 2
+                         then '线下'
+                   ELSE null end
+                as source,
+               uoc.coupon_price disaccount,
+        if(g.business_name is null, uoc.business_name,g.business_name) as businessName,
+               gc.price as couponPrice,
+               case
+                   when gc.kind = 1 THEN '门票券'
+                   when gc.kind = 2 THEN '民宿券'
+                   when gc.kind = 3 THEN '餐饮券'
+                   else null end  as couponType ,
+               o.create_time as orderCreateTime ,
+               case
+                   when gc.kind = 1
+                         then '35%'
+                   when gc.kind = 2
+                         then '40%'
+                   when gc.kind = 3
+                         then '60%'
+                   else null end as settlementDiscount,
+               case
+                   when gc.kind = 1
+                         then uoc.coupon_price * 0.35
+                   when gc.kind = 2
+                         then uoc.coupon_price * 0.4
+                   when gc.kind = 3
+                         then uoc.coupon_price * 0.6
+                   else null end as settlementAmount
+
+        from
+             user_of_coupon uoc
+                 inner join goods_coupon gc on gc.id = uoc.goods_coupon_id
+                 left join (select GROUP_CONCAT(DISTINCT oo.user_of_coupon_id)  as user_of_coupon_id,oo.create_time from orders oo where oo.user_of_coupon_id is not null group BY oo.user_of_coupon_id
+        ) o on o.user_of_coupon_id = uoc.id
+                 left join (select id ,business_id,business_name from goods where business_id is not null group by  business_id) g on uoc.business_id = g.business_id
+        where  1=1
+        <if test="startDate != null and startDate != ''">
+            and  uoc.create_time > #{startDate}
+        </if>
+        <if test="endDate != null and endDate != '' ">
+            and uoc.create_time &lt; #{endDate}
+        </if>
+        <if test="status != null and status != '' ">
+            and uoc.status = #{status}
+        </if>
+        <if test="kind != null and kind != '' ">
+            and gc.kind = #{kind}
+        </if>
+        <if test="couponNo != null and couponNo != ''">
+            and uoc.id like CONCAT('%',#{couponNo},'%')
+        </if>
+        <if test="userId != null and userId != ''">
+            and uoc.user_id = #{userId}
+        </if>
+        <if test="couponPrice != null">
+            and gc.price = #{couponPrice}
+        </if>
+        <if test="businessName != null and businessName != ''">
+            and if(g.business_name is null, uoc.business_name,g.business_name) like CONCAT('%',#{businessName},'%')
+        </if>
+        order by uoc.create_time desc
+    </select>
+
+
+    <update id="updateGetedSize">
+        update goods_coupon set geted_size = geted_size+1 where id in
+        <foreach collection="couponIdList" separator="," index="couponIdList" item="couponIdList" close=")" open="(">
+            #{couponIdList}
+        </foreach>
+    </update>
+</mapper>

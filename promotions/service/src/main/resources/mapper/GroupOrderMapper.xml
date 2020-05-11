@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.enn.wise.ssop.service.promotions.mapper.GroupOrderMapper">
+
+
+    <select id="getGroupOrderListByPage" parameterType="cn.enn.wise.ssop.api.promotions.dto.request.GroupOrderListParam" resultType="cn.enn.wise.ssop.api.promotions.dto.response.GroupOrderDTO">
+        select
+        max(o.id) id,
+        max(o.group_order_code) code,
+        max(p.activity_name) name,
+        max(o.group_size) groupSize,
+        max(o.status) status,
+        max(o.available_time) validHours,
+        max(o.create_time)  startTime,
+        max(o.end_time) endTime,
+        count(i.id) userCount,
+        max(r.isauto_create_group) isAutoFinish
+        from group_order o
+        left join activity_base p on p.id=o.group_activity_id
+        LEFT JOIN activity_rule ar ON ar.activity_base_id = p.id
+        left join activity_group_rule r on r.activity_rule_id = ar.id
+        left join (select * from   group_order_item where status=1) i on i.group_order_id=o.id
+
+        <where>
+
+            <if test="params.phone != null and params.phone !='' ">
+                and  i.phone like CONCAT('%',#{params.phone},'%')
+            </if>
+
+            <if test="params.status != null">
+                and
+                o.status in
+                <foreach collection="params.status" item="id" index="index" open="(" close=")" separator=",">
+                    #{id}
+                </foreach>
+            </if>
+            <if test="params.contacts != null and params.contacts!='' ">
+                and  i.contact_name like  CONCAT('%',#{params.contacts},'%')
+            </if>
+            <if test="params.promotionName != null and params.promotionName!='' ">
+                and  p.activity_name like  CONCAT('%',#{promotionName},'%')
+            </if>
+            <if test="params.startTime != null and params.startTime!='' ">
+                and  o.create_time >=  #{params.startTime}
+            </if>
+            <if test="params.endTime != null and params.endTime!='' ">
+                and  o.end_time &lt;=  #{params.endTime}
+            </if>
+            <if test="params.isAutoFinish != null and params.isAutoFinish!='' ">
+                and  r.isauto_create_group =  #{params.isAutoFinish}
+            </if>
+        </where>
+        group by o.id
+        order by o.id desc
+        limit #{params.offset},#{params.limit}
+
+    </select>
+
+
+    <select id="getGroupOrderListCounts" resultType="Map">
+
+        select count(1) total from (
+        select
+        max(o.id) id,
+        max(o.group_order_code) code,
+        max(p.activity_name) name,
+        max(o.group_size) groupSize,
+        max(o.status) status,
+        max(o.available_time) validHours,
+        max(o.create_time)  startTime,
+        max(o.end_time) endTime,
+        count(i.id) userCount,
+        max(r.isauto_create_group) isAutoFinish
+        from group_order o
+        left join activity_base p on p.id=o.group_activity_id
+        LEFT JOIN activity_rule ar ON ar.activity_base_id = p.id
+        left join activity_group_rule r on r.activity_rule_id = ar.id
+        left join (select * from   group_order_item where status=1) i on i.group_order_id=o.id
+
+        <where>
+
+            <if test="params.phone != null and params.phone !='' ">
+                and  i.phone like CONCAT('%',#{params.phone},'%')
+            </if>
+
+            <if test="params.status != null">
+                and
+                o.status in
+                <foreach collection="params.status" item="id" index="index" open="(" close=")" separator=",">
+                    #{id}
+                </foreach>
+            </if>
+            <if test="params.contacts != null and params.contacts!='' ">
+                and  i.contact_name like  CONCAT('%',#{params.contacts},'%')
+            </if>
+            <if test="params.promotionName != null and params.promotionName!='' ">
+                and  p.activity_name like  CONCAT('%',#{promotionName},'%')
+            </if>
+            <if test="params.startTime != null and params.startTime!='' ">
+                and  o.create_time >=  #{params.startTime}
+            </if>
+            <if test="params.endTime != null and params.endTime!='' ">
+                and  o.end_time &lt;=  #{params.endTime}
+            </if>
+            <if test="params.isAutoFinish != null and params.isAutoFinish!='' ">
+                and  r.isauto_create_group =  #{params.isAutoFinish}
+            </if>
+        </where>
+        group by o.id
+        ) t
+    </select>
+
+    <insert id="saveGroupOrder" parameterType="cn.enn.wise.ssop.service.promotions.model.GroupOrder" keyProperty="id" useGeneratedKeys="true">
+
+        insert into group_order(id,group_activity_id, group_order_code,
+                                goods_id, group_size,
+                                status, user_id,available_time) VALUES
+            (   null,
+                #{groupOrder.groupActivityId},
+                (select o.groupOrderCode from
+                    (select concat('TD',right(DATE_FORMAT(NOW(),'%Y%m'),4),
+                                   LPAD((select ifnull(count(id),0)+1 from group_order where left(now(),7) =left(create_time,7)),4,'0')
+                                   ) groupOrderCode) o),
+                #{groupOrder.goodsId},
+                #{groupOrder.groupSize},
+                #{groupOrder.status},
+                #{groupOrder.userId},
+                #{groupOrder.availableTime}
+            )
+    </insert>
+
+    <select id="getBuyAmount" resultType="map">
+         select count(distinct go.id) as amount , agr.group_limit as groupLimit from group_order go
+           inner join activity_base  gp on gp.id = go.group_activity_id
+           inner join activity_rule gr on gr.activity_base_id = gp.id
+                 INNER JOIN activity_group_rule agr on agr.activity_rule_id=gr.id
+           left join group_order_item  goi on goi.group_order_id = go.id
+            where go.status in(1,2,3) and goi.user_id = #{userId} and go.group_activity_id = #{promotionId}
+    </select>
+
+    <select id="getGroupOrderForList" resultType="cn.enn.wise.ssop.api.promotions.dto.response.GroupOrderDTO">
+        SELECT
+            go.id,
+            go.group_activity_id,
+            go.group_order_code,
+            go.goods_num,
+            go.goods_id,
+            go.create_time,
+            go.group_size,
+            go.status,
+            go.end_time,
+            go.available_time,
+            go.user_id,
+            count(goi.id) saleNum
+        FROM
+            group_order go
+        LEFT JOIN group_order_item goi on go.id=goi.group_order_id and goi.status=1
+        WHERE
+             go.goods_id =#{goodsId} and go.available_time >SYSDATE() and go.status = 2
+        group by go.id,
+            go.group_activity_id,
+            go.group_order_code,
+            go.goods_num,
+            go.goods_id,
+            go.create_time,
+            go.group_size,
+            go.status,
+            go.end_time,
+            go.available_time,
+            go.user_id
+          ORDER BY available_time,saleNum
+          LIMIT 0,20
+
+    </select>
+
+    <select id="getGroupOrderByIdAndAvailableTime" resultType="cn.enn.wise.ssop.api.promotions.dto.response.GroupOrderDTO">
+
+        select
+          go.id,
+          go.group_activity_id,
+          go.group_order_code,
+          go.goods_num,
+          go.goods_id,
+          go.create_time,
+          go.group_size,
+          go.status,
+          go.end_time,
+          go.available_time,
+          go.user_id,
+					count(goi.id)
+        from group_order go INNER JOIN group_order_item goi ON goi.group_order_id=go.id
+        where go.id =  #{id} and go.available_time >SYSDATE() and go.status=2
+
+    </select>
+
+    <select id="getGroupLimitById" resultType="java.lang.Long">
+    SELECT
+        gr.group_limit
+    FROM
+        activity_rule gp
+    INNER JOIN activity_group_rule gr ON gp.id = gr.activity_rule_id
+    WHERE
+        gp.activity_base_id = #{groupActivityId}
+    AND gr.isdelete = 1
+    AND gr.state = 1
+    </select>
+
+    <select id="getGroupGoodsList" resultType="cn.enn.wise.ssop.api.promotions.dto.response.GroupGoodsListDTO">
+    SELECT
+         ag.goods_id,
+         ag.goods_name,
+         ag.refund_type,
+         ag.activity_rule_id,
+         ab.id AS activity_base_id,
+         ag.sell_price,
+         ag.group_price,
+         ag.goods_extend_id,
+         ag.goods_extend_name,
+         ag.goods_project_period_id,
+         ag.title,
+         ag.project_id,
+         ag.project_name,
+         COUNT(goi.id) AS total
+    FROM activity_goods ag
+    INNER JOIN
+        activity_rule ar
+            ON ag.activity_rule_id =ar.id
+    INNER JOIN
+        activity_base ab
+            ON ab.id = ar.activity_base_id
+    LEFT JOIN
+        group_order go
+            ON go.group_activity_id = ab.id and go.goods_id = ag.goods_id
+    LEFT JOIN
+        group_order_item goi
+            ON goi.group_order_id = go.id
+    WHERE ab.activity_type = 2
+    AND ab.state = 2
+    AND ab.isdelete = 1
+    GROUP BY ag.goods_id,
+         ag.goods_name,
+         ag.refund_type,
+         ag.activity_rule_id,
+         ab.id,
+         ag.sell_price,
+         ag.group_price,
+         ag.goods_extend_id,
+         ag.goods_extend_name,
+         ag.goods_project_period_id,
+         ag.title,
+         ag.project_id,
+         ag.project_name,
+         goi.goods_extend_id,
+         go.goods_id
+    </select>
+
+    <select id="getGroupGoodsHotList" resultType="java.util.Map">
+        SELECT
+            ab.id activityBaseId,
+            ar.id ruleId,
+            ag.goods_id goodsId,
+            ag.goods_extend_id goodsExtendId,
+            ag.group_price groupPrice
+        FROM
+            activity_base ab
+        INNER JOIN activity_rule ar ON ar.activity_base_id = ab.id
+        INNER JOIN activity_goods ag ON ar.id = ag.activity_rule_id
+        WHERE
+            ab.state = 2
+        AND ab.isdelete = 1
+        AND ab.activity_type = 2
+        LIMIT 0,2
+    </select>
+
+</mapper>
